@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendOtpEmail(to: string, code: string): Promise<void> {
-  await transporter.sendMail({
+  const info = await transporter.sendMail({
     from:    config.SMTP_FROM,
     to,
     subject: 'Your TempleGym login code',
@@ -22,4 +22,9 @@ export async function sendOtpEmail(to: string, code: string): Promise<void> {
       </div>
     `,
   });
+
+  if (config.NODE_ENV === 'development') {
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+    if (previewUrl) console.log('[email] Preview:', previewUrl);
+  }
 }
