@@ -1,0 +1,99 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SessionType {
+  PUSH
+  PULL
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  displayName  String?
+  heightCm     Int?
+  weightKg     Float?
+  gpsEnabled   Boolean  @default(true)
+  preferMetric Boolean  @default(true)
+  totalPoints  Int      @default(0)
+  weeklyPoints Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  otpRequests     OtpRequest[]
+  workoutSessions WorkoutSession[]
+  favourites      UserFavourite[]
+}
+
+model OtpRequest {
+  id        String    @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User? @relation(fields: [email], references: [email])
+
+  @@index([email, usedAt, expiresAt])
+}
+
+model Exercise {
+  id           String      @id @default(cuid())
+  name         String      @unique
+  category     SessionType
+  subCategory  String?
+  muscleGroups String[]
+  workoutExercises WorkoutExercise[]
+  favouritedBy     UserFavourite[]
+}
+
+model WorkoutSession {
+  id              String      @id @default(cuid())
+  userId          String
+  type            SessionType
+  startedAt       DateTime
+  endedAt         DateTime
+  durationMinutes Int
+  pointsEarned    Int
+  gpsLat          Float?
+  gpsLng          Float?
+  gpsVerified     Boolean     @default(false)
+  volumeScore     Float       @default(0)
+  weekLabel       String
+  createdAt       DateTime    @default(now())
+
+  user      User              @relation(fields: [userId], references: [id])
+  exercises WorkoutExercise[]
+
+  @@index([userId, weekLabel])
+  @@index([weekLabel, pointsEarned])
+}
+
+model WorkoutExercise {
+  id         String   @id @default(cuid())
+  sessionId  String
+  exerciseId String
+  orderIndex Int
+  startedAt  DateTime
+  sets       Json
+
+  session  WorkoutSession @relation(fields: [sessionId], references: [id])
+  exercise Exercise       @relation(fields: [exerciseId], references: [id])
+}
+
+model UserFavourite {
+  userId     String
+  exerciseId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  exercise Exercise @relation(fields: [exerciseId], references: [id])
+
+  @@id([userId, exerciseId])
+}
