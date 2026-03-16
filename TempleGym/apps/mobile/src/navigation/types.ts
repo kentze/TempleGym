@@ -11,8 +11,6 @@ export type MainStackParamList = {
   History:        undefined;
   SessionDetail:  { sessionId: string };
   Leaderboard:    undefined;
-  Shop:           undefined;
-  ShopDetail:     { itemId: string };
   Favourites:     undefined;
   Settings:       undefined;
 };

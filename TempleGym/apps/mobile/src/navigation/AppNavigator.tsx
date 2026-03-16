@@ -11,8 +11,6 @@ import SessionLoggingScreen from '../screens/workout/SessionLoggingScreen';
 import HistoryScreen        from '../screens/history/HistoryScreen';
 import SessionDetailScreen  from '../screens/history/SessionDetailScreen';
 import LeaderboardScreen    from '../screens/leaderboard/LeaderboardScreen';
-import ShopScreen           from '../screens/shop/ShopScreen';
-import ShopDetailScreen     from '../screens/shop/ShopDetailScreen';
 import FavouritesScreen     from '../screens/favourites/FavouritesScreen';
 import SettingsScreen       from '../screens/settings/SettingsScreen';
 
@@ -30,8 +28,6 @@ export default function AppNavigator() {
           <Stack.Screen name="History"        component={HistoryScreen} />
           <Stack.Screen name="SessionDetail"  component={SessionDetailScreen} />
           <Stack.Screen name="Leaderboard"    component={LeaderboardScreen} />
-          <Stack.Screen name="Shop"           component={ShopScreen} />
-          <Stack.Screen name="ShopDetail"     component={ShopDetailScreen} />
           <Stack.Screen name="Favourites"     component={FavouritesScreen} />
           <Stack.Screen name="Settings"       component={SettingsScreen} />
         </Stack.Navigator>

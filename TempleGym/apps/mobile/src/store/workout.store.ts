@@ -5,7 +5,6 @@ import { api } from '../services/api';
 interface ActiveExercise {
   exerciseId: string;
   name:       string;
-  emoji:      string;
   orderIndex: number;
   startedAt:  Date;
   sets:       SetEntry[];
@@ -43,7 +42,6 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
         exercises: [...session.exercises, {
           exerciseId: exercise.id,
           name:       exercise.name,
-          emoji:      exercise.emoji,
           orderIndex: session.exercises.length,
           startedAt:  new Date(),
           sets:       [],

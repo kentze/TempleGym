@@ -7,24 +7,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// ─────────────────────────────────────────────
-// Enums
-// ─────────────────────────────────────────────
-
 enum SessionType {
   PUSH
   PULL
 }
-
-enum RedemptionStatus {
-  PENDING
-  FULFILLED
-  CANCELLED
-}
-
-// ─────────────────────────────────────────────
-// Models
-// ─────────────────────────────────────────────
 
 model User {
   id           String   @id @default(cuid())
@@ -41,7 +27,6 @@ model User {
 
   otpRequests     OtpRequest[]
   workoutSessions WorkoutSession[]
-  redemptions     Redemption[]
   favourites      UserFavourite[]
 }
 
@@ -64,8 +49,6 @@ model Exercise {
   category     SessionType
   subCategory  String?
   muscleGroups String[]
-  emoji        String      @default("🏋️")
-
   workoutExercises WorkoutExercise[]
   favouritedBy     UserFavourite[]
 }
@@ -102,32 +85,6 @@ model WorkoutExercise {
 
   session  WorkoutSession @relation(fields: [sessionId], references: [id])
   exercise Exercise       @relation(fields: [exerciseId], references: [id])
-}
-
-model ShopItem {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  pointCost   Int
-  emoji       String   @default("🛍")
-  sizes       String[]
-  stock       Int      @default(-1)
-  isActive    Boolean  @default(true)
-
-  redemptions Redemption[]
-}
-
-model Redemption {
-  id          String           @id @default(cuid())
-  userId      String
-  shopItemId  String
-  size        String?
-  pointsSpent Int
-  status      RedemptionStatus @default(PENDING)
-  createdAt   DateTime         @default(now())
-
-  user     User     @relation(fields: [userId], references: [id])
-  shopItem ShopItem @relation(fields: [shopItemId], references: [id])
 }
 
 model UserFavourite {

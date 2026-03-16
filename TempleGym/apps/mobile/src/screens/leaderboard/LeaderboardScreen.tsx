@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '../../constants/colors';
 
-// TODO: Implement in Phase 3
 export default function LeaderboardScreen() {
   return (
     <View style={styles.container}>

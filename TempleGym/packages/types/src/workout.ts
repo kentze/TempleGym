@@ -12,7 +12,6 @@ export interface Exercise {
   category: SessionType;
   subCategory: string | null;
   muscleGroups: string[];
-  emoji: string;
 }
 
 export interface WorkoutExerciseEntry {
