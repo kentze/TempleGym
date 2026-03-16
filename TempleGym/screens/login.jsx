@@ -1,11 +1,11 @@
 import React from "react";
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
-import { Colors } from "../../constants/colors";
+
+import { View, TextInput, Button, Text } from "react-native";
 
 export default function LoginScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Login</Text>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <Text>Login Screen</Text>
       <TextInput
         placeholder="Username"
         style={{
@@ -38,13 +38,3 @@ export default function LoginScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.background,
-  },
-  text: { color: Colors.textMuted, fontSize: 16 },
-});
