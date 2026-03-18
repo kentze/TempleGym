@@ -1,16 +1,125 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../../constants/colors';
+import { api } from '../../services/api';
+import type { MainStackParamList } from '../../navigation/types';
+import type { WorkoutSession, WorkoutsListResponse } from '@templegym/types';
+
+type Nav = NativeStackNavigationProp<MainStackParamList, 'History'>;
+
+const PAGE_SIZE = 20;
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 export default function HistoryScreen() {
+  const navigation = useNavigation<Nav>();
+
+  const [sessions, setSessions]       = useState<WorkoutSession[]>([]);
+  const [total, setTotal]             = useState(0);
+  const [loading, setLoading]         = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError]             = useState<string | null>(null);
+
+  const fetchPage = useCallback(async (offset: number, replace: boolean) => {
+    try {
+      const { data } = await api.get<WorkoutsListResponse>('/me/workouts', {
+        params: { limit: PAGE_SIZE, offset },
+      });
+      setSessions((prev) => replace ? data.sessions : [...prev, ...data.sessions]);
+      setTotal(data.total);
+    } catch {
+      setError('Could not load history.');
+    }
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      await fetchPage(0, true);
+      setLoading(false);
+    })();
+  }, []);
+
+  async function handleLoadMore() {
+    if (loadingMore || sessions.length >= total) return;
+    setLoadingMore(true);
+    await fetchPage(sessions.length, false);
+    setLoadingMore(false);
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>History</Text>
+      <Text style={styles.heading}>History</Text>
+      <FlatList
+        data={sessions}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.3}
+        ListEmptyComponent={<Text style={styles.emptyText}>No sessions yet.</Text>}
+        ListFooterComponent={loadingMore ? <ActivityIndicator color={Colors.primary} style={{ marginVertical: 12 }} /> : null}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => navigation.navigate('SessionDetail', { session: item })}
+            activeOpacity={0.75}
+          >
+            <View style={[styles.badge, item.type === 'PUSH' ? styles.badgePush : styles.badgePull]}>
+              <Text style={styles.badgeText}>{item.type}</Text>
+            </View>
+            <View style={styles.rowInfo}>
+              <Text style={styles.rowDate}>{formatDate(item.startedAt)}</Text>
+              <Text style={styles.rowMeta}>{item.durationMinutes} min · {item.pointsEarned} pts</Text>
+            </View>
+            <Text style={styles.rowArrow}>›</Text>
+          </TouchableOpacity>
+        )}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background },
-  text:      { color: Colors.textMuted, fontSize: 16 },
+  container:  { flex: 1, backgroundColor: Colors.background },
+  center:     { flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' },
+  heading:    { fontSize: 22, fontWeight: '700', color: Colors.text, padding: 20, paddingBottom: 12 },
+  list:       { paddingHorizontal: 16, gap: 10 },
+  emptyText:  { color: Colors.textMuted, textAlign: 'center', marginTop: 40 },
+  errorText:  { color: Colors.error, textAlign: 'center' },
+  row:        { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 14, gap: 12 },
+  badge:      { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
+  badgePush:  { backgroundColor: `${Colors.primary}30` },
+  badgePull:  { backgroundColor: `${Colors.gold}20` },
+  badgeText:  { fontSize: 11, fontWeight: '700', color: Colors.text },
+  rowInfo:    { flex: 1, gap: 2 },
+  rowDate:    { fontSize: 15, fontWeight: '600', color: Colors.text },
+  rowMeta:    { fontSize: 12, color: Colors.textMuted },
+  rowArrow:   { fontSize: 20, color: Colors.textMuted },
 });

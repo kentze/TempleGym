@@ -13,7 +13,6 @@ const NAV_ITEMS = [
 function activeBase(name: string): string {
   if (name === 'Workout' || name === 'SessionLogging') return 'Home';
   if (name === 'SessionDetail')                        return 'History';
-  if (name === 'ShopDetail')                           return 'Shop';
   return name;
 }
 

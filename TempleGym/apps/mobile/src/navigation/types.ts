@@ -1,4 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { WorkoutSession } from '@templegym/types';
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -6,10 +7,10 @@ export type AuthStackParamList = {
 
 export type MainStackParamList = {
   Home:           undefined;
-  Workout:        { sessionType: 'PUSH' | 'PULL' };
+  Workout:        undefined;
   SessionLogging: undefined;
   History:        undefined;
-  SessionDetail:  { sessionId: string };
+  SessionDetail:  { session: WorkoutSession };
   Leaderboard:    undefined;
   Favourites:     undefined;
   Settings:       undefined;
