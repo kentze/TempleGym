@@ -12,7 +12,7 @@ const envSchema = z.object({
   OTP_EXPIRY_MINUTES: z.coerce.number().default(10),
   GYM_LAT:            z.coerce.number(),
   GYM_LNG:            z.coerce.number(),
-  GYM_RADIUS_M:       z.coerce.number().default(500),
+  GYM_RADIUS_M:       z.coerce.number().default(100), //500 might be too large, the distance between the gym and campus is only 200 meters
   PORT:               z.coerce.number().default(3000),
   NODE_ENV:           z.enum(['development', 'production', 'test']).default('development'),
 });
