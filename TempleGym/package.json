@@ -10,5 +10,11 @@
     "dev:server": "npm run dev --workspace=apps/server",
     "dev:mobile": "npm run start --workspace=apps/mobile",
     "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@react-native-community/cli": "latest"
+  },
+  "dependencies": {
+    "expo": "^55.0.7"
   }
 }
