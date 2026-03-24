@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -28,6 +29,7 @@ export default function HistoryScreen() {
   const [sessions, setSessions]       = useState<WorkoutSession[]>([]);
   const [total, setTotal]             = useState(0);
   const [loading, setLoading]         = useState(true);
+  const [refreshing, setRefreshing]   = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError]             = useState<string | null>(null);
 
@@ -38,6 +40,7 @@ export default function HistoryScreen() {
       });
       setSessions((prev) => replace ? data.sessions : [...prev, ...data.sessions]);
       setTotal(data.total);
+      setError(null);
     } catch {
       setError('Could not load history.');
     }
@@ -50,6 +53,12 @@ export default function HistoryScreen() {
       setLoading(false);
     })();
   }, []);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await fetchPage(0, true);
+    setRefreshing(false);
+  }
 
   async function handleLoadMore() {
     if (loadingMore || sessions.length >= total) return;
@@ -66,10 +75,13 @@ export default function HistoryScreen() {
     );
   }
 
-  if (error) {
+  if (error && sessions.length === 0) {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity onPress={handleRefresh} style={styles.retryButton}>
+          <Text style={styles.retryText}>Try again</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -83,6 +95,7 @@ export default function HistoryScreen() {
         contentContainerStyle={styles.list}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.3}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.primary} />}
         ListEmptyComponent={<Text style={styles.emptyText}>No sessions yet.</Text>}
         ListFooterComponent={loadingMore ? <ActivityIndicator color={Colors.primary} style={{ marginVertical: 12 }} /> : null}
         renderItem={({ item }) => (
@@ -107,19 +120,21 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: Colors.background },
-  center:     { flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' },
-  heading:    { fontSize: 22, fontWeight: '700', color: Colors.text, padding: 20, paddingBottom: 12 },
-  list:       { paddingHorizontal: 16, gap: 10 },
-  emptyText:  { color: Colors.textMuted, textAlign: 'center', marginTop: 40 },
-  errorText:  { color: Colors.error, textAlign: 'center' },
-  row:        { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 14, gap: 12 },
-  badge:      { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
-  badgePush:  { backgroundColor: `${Colors.primary}30` },
-  badgePull:  { backgroundColor: `${Colors.gold}20` },
-  badgeText:  { fontSize: 11, fontWeight: '700', color: Colors.text },
-  rowInfo:    { flex: 1, gap: 2 },
-  rowDate:    { fontSize: 15, fontWeight: '600', color: Colors.text },
-  rowMeta:    { fontSize: 12, color: Colors.textMuted },
-  rowArrow:   { fontSize: 20, color: Colors.textMuted },
+  container:   { flex: 1, backgroundColor: Colors.background },
+  center:      { flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  heading:     { fontSize: 22, fontWeight: '700', color: Colors.text, padding: 20, paddingBottom: 12 },
+  list:        { paddingHorizontal: 16, gap: 10 },
+  emptyText:   { color: Colors.textMuted, textAlign: 'center', marginTop: 40 },
+  errorText:   { color: Colors.error, textAlign: 'center' },
+  retryButton: { paddingHorizontal: 20, paddingVertical: 8 },
+  retryText:   { color: Colors.primary, fontSize: 14 },
+  row:         { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 14, gap: 12 },
+  badge:       { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
+  badgePush:   { backgroundColor: `${Colors.primary}30` },
+  badgePull:   { backgroundColor: `${Colors.gold}20` },
+  badgeText:   { fontSize: 11, fontWeight: '700', color: Colors.text },
+  rowInfo:     { flex: 1, gap: 2 },
+  rowDate:     { fontSize: 15, fontWeight: '600', color: Colors.text },
+  rowMeta:     { fontSize: 12, color: Colors.textMuted },
+  rowArrow:    { fontSize: 20, color: Colors.textMuted },
 });

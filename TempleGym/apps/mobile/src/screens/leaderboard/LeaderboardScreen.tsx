@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
+  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
@@ -20,22 +22,33 @@ function formatReset(iso: string): string {
 export default function LeaderboardScreen() {
   const user = useAuthStore((s) => s.user);
 
-  const [data, setData]       = useState<LeaderboardResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
+  const [data, setData]           = useState<LeaderboardResponse | null>(null);
+  const [loading, setLoading]     = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError]         = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const { data: res } = await api.get<LeaderboardResponse>('/leaderboard/weekly');
+      setData(res);
+      setError(null);
+    } catch {
+      setError('Could not load leaderboard.');
+    }
+  }, []);
 
   useEffect(() => {
     (async () => {
-      try {
-        const { data: res } = await api.get<LeaderboardResponse>('/leaderboard/weekly');
-        setData(res);
-      } catch {
-        setError('Could not load leaderboard.');
-      } finally {
-        setLoading(false);
-      }
+      await fetchData();
+      setLoading(false);
     })();
   }, []);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  }
 
   if (loading) {
     return (
@@ -49,6 +62,9 @@ export default function LeaderboardScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>{error ?? 'No data.'}</Text>
+        <TouchableOpacity onPress={handleRefresh} style={styles.retryButton}>
+          <Text style={styles.retryText}>Try again</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -81,6 +97,7 @@ export default function LeaderboardScreen() {
         data={data.entries}
         keyExtractor={(item) => item.userId}
         contentContainerStyle={styles.list}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.primary} />}
         renderItem={renderEntry}
         ListEmptyComponent={<Text style={styles.emptyText}>No entries yet this week.</Text>}
       />
@@ -98,13 +115,15 @@ export default function LeaderboardScreen() {
 
 const styles = StyleSheet.create({
   container:    { flex: 1, backgroundColor: Colors.background },
-  center:       { flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' },
+  center:       { flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center', gap: 12 },
   heading:      { padding: 20, paddingBottom: 12, gap: 4 },
   headingText:  { fontSize: 22, fontWeight: '700', color: Colors.text },
   headingMeta:  { fontSize: 12, color: Colors.textMuted },
   list:         { paddingHorizontal: 16, gap: 8 },
   emptyText:    { color: Colors.textMuted, textAlign: 'center', marginTop: 40 },
   errorText:    { color: Colors.error, textAlign: 'center' },
+  retryButton:  { paddingHorizontal: 20, paddingVertical: 8 },
+  retryText:    { color: Colors.primary, fontSize: 14 },
   row:          { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 10, borderWidth: 1, borderColor: Colors.border, paddingVertical: 12, paddingHorizontal: 14, gap: 12 },
   rowHighlight: { borderColor: Colors.primary, backgroundColor: Colors.primaryFaded },
   rank:         { width: 28, fontSize: 14, fontWeight: '700', color: Colors.textMuted, textAlign: 'center' },
