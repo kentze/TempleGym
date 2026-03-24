@@ -18,7 +18,7 @@ function activeBase(name: string): string {
 
 export default function Sidebar() {
   const navigation = useNavigation<any>();
-  const routeName  = useNavigationState((s) => s.routes[s.index]?.name ?? 'Home');
+  const routeName  = useNavigationState((s) => s?.routes[s?.index ?? 0]?.name ?? 'Home');
   const active     = activeBase(routeName);
 
   return (
