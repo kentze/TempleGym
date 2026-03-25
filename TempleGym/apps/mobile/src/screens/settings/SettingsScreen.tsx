@@ -36,7 +36,14 @@ export default function SettingsScreen() {
       gpsEnabled,
       preferMetric,
     };
-    if (displayName.trim()) body.displayName = displayName.trim();
+    if (displayName.trim()) {
+      if (displayName.trim().length < 2) {
+        setError('Display name must be at least 2 characters.');
+        setSaving(false);
+        return;
+      }
+      body.displayName = displayName.trim();
+    }
     if (heightCm) {
       const h = parseFloat(heightCm);
       if (isNaN(h) || h < 100 || h > 250) {

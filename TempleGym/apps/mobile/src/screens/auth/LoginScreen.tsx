@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,15 @@ import type { AuthResponse } from '@templegym/types';
 type Step = 'email' | 'code';
 
 export default function LoginScreen() {
-  const { setToken, setUser } = useAuthStore();
+  const { setToken, setUser, sessionExpired, setSessionExpired } = useAuthStore();
+  const [expiredBanner, setExpiredBanner] = useState(false);
+
+  useEffect(() => {
+    if (sessionExpired) {
+      setExpiredBanner(true);
+      setSessionExpired(false);
+    }
+  }, []);
 
   const [step, setStep]       = useState<Step>('email');
   const [email, setEmail]     = useState('');
@@ -69,6 +77,11 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.card}>
+        {expiredBanner && (
+          <View style={styles.banner}>
+            <Text style={styles.bannerText}>Your session has expired. Please sign in again.</Text>
+          </View>
+        )}
         <Text style={styles.title}>TempleGym</Text>
         <Text style={styles.subtitle}>
           {step === 'email' ? 'Sign in with your Temple email' : `Code sent to ${email}`}
@@ -128,6 +141,8 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container:      { flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center', padding: 24 },
   card:           { width: '100%', maxWidth: 360, gap: 16 },
+  banner:         { backgroundColor: `${Colors.error}20`, borderWidth: 1, borderColor: Colors.error, borderRadius: 8, padding: 12 },
+  bannerText:     { color: Colors.error, fontSize: 13, textAlign: 'center' },
   title:          { fontSize: 28, fontWeight: '700', color: Colors.text, textAlign: 'center' },
   subtitle:       { fontSize: 14, color: Colors.textMuted, textAlign: 'center' },
   input:          { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, color: Colors.text, fontSize: 16 },
