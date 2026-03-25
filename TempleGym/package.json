@@ -10,5 +10,9 @@
     "dev:server": "npm run dev --workspace=apps/server",
     "dev:mobile": "npm run start --workspace=apps/mobile",
     "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "dependencies": {
+    "moti": "^0.30.0",
+    "react-native-reanimated": "^4.2.3"
   }
 }
