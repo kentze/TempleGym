@@ -1,15 +1,16 @@
 {
   "expo": {
-    "name": "mobile",
+    "name": "TempleGym",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/temple-logo.png",
+    "backgroundColor": "#A41E35",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/temple-logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#A41E35"
     },
     "ios": {
       "supportsTablet": true

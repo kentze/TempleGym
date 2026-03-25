@@ -27,21 +27,29 @@ export default function LoginScreen() {
     }
   }, []);
 
-  const [step, setStep]       = useState<Step>('email');
-  const [email, setEmail]     = useState('');
-  const [code, setCode]       = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+  const [step, setStep]         = useState<Step>('email');
+  const [prefix, setPrefix]     = useState('');
+  const [code, setCode]         = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState<string | null>(null);
+
+  const fullEmail = `${prefix.toLowerCase()}@temple.edu`;
+
+  const TEMPLE_USERNAME = /^tu[a-z]\d{5}$/i;
+
+  function handlePrefixChange(raw: string) {
+    setPrefix(raw.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8));
+  }
 
   async function handleRequestOtp() {
     setError(null);
-    if (!email.toLowerCase().endsWith('@temple.edu')) {
-      setError('A @temple.edu email address is required.');
+    if (!TEMPLE_USERNAME.test(prefix)) {
+      setError('Enter a valid Temple username (e.g. tur78663).');
       return;
     }
     setLoading(true);
     try {
-      await api.post('/auth/request-otp', { email: email.toLowerCase() });
+      await api.post('/auth/request-otp', { email: fullEmail });
       setStep('code');
     } catch (e: any) {
       setError(e.response?.data?.error ?? 'Failed to send code. Try again.');
@@ -59,7 +67,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const { data } = await api.post<AuthResponse>('/auth/verify-otp', {
-        email: email.toLowerCase(),
+        email: fullEmail,
         code,
       });
       await setToken(data.token);
@@ -84,22 +92,27 @@ export default function LoginScreen() {
         )}
         <Text style={styles.title}>TempleGym</Text>
         <Text style={styles.subtitle}>
-          {step === 'email' ? 'Sign in with your Temple email' : `Code sent to ${email}`}
+          {step === 'email' ? 'Sign in with your Temple username' : `Code sent to ${fullEmail}`}
         </Text>
 
         {step === 'email' ? (
-          <TextInput
-            style={styles.input}
-            placeholder="you@temple.edu"
-            placeholderTextColor={Colors.textMuted}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            value={email}
-            onChangeText={setEmail}
-            onSubmitEditing={handleRequestOtp}
-            returnKeyType="send"
-          />
+          <View style={styles.emailRow}>
+            <TextInput
+              style={styles.prefixInput}
+              placeholder="tur78663"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="default"
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={prefix}
+              onChangeText={handlePrefixChange}
+              onSubmitEditing={handleRequestOtp}
+              returnKeyType="send"
+            />
+            <View style={styles.suffixBox}>
+              <Text style={styles.suffixText}>@temple.edu</Text>
+            </View>
+          </View>
         ) : (
           <TextInput
             style={[styles.input, styles.inputCode]}
@@ -130,7 +143,7 @@ export default function LoginScreen() {
 
         {step === 'code' && (
           <TouchableOpacity onPress={() => { setStep('email'); setCode(''); setError(null); }}>
-            <Text style={styles.back}>Use a different email</Text>
+            <Text style={styles.back}>Use a different username</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -145,6 +158,10 @@ const styles = StyleSheet.create({
   bannerText:     { color: Colors.error, fontSize: 13, textAlign: 'center' },
   title:          { fontSize: 28, fontWeight: '700', color: Colors.text, textAlign: 'center' },
   subtitle:       { fontSize: 14, color: Colors.textMuted, textAlign: 'center' },
+  emailRow:       { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: Colors.border, borderRadius: 10, backgroundColor: Colors.surface, overflow: 'hidden' },
+  prefixInput:    { flex: 1, paddingHorizontal: 16, paddingVertical: 12, color: Colors.text, fontSize: 16 },
+  suffixBox:      { paddingHorizontal: 12, paddingVertical: 12, borderLeftWidth: 1, borderLeftColor: Colors.border },
+  suffixText:     { color: Colors.textMuted, fontSize: 16 },
   input:          { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, color: Colors.text, fontSize: 16 },
   inputCode:      { textAlign: 'center', letterSpacing: 8, fontSize: 22 },
   error:          { color: Colors.error, fontSize: 13, textAlign: 'center' },
