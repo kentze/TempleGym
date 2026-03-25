@@ -1,96 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-enum SessionType {
-  PUSH
-  PULL
-}
-
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  displayName  String?
-  heightCm     Int?
-  weightKg     Float?
-  gpsEnabled   Boolean  @default(true)
-  preferMetric Boolean  @default(true)
-  totalPoints  Int      @default(0)
-  weeklyPoints Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  workoutSessions WorkoutSession[]
+  id              String           @id @default(cuid())
+  email           String           @unique
+  displayName     String?
+  heightCm        Int?
+  weightKg        Float?
+  gpsEnabled      Boolean          @default(true)
+  preferMetric    Boolean          @default(true)
+  totalPoints     Int              @default(0)
+  weeklyPoints    Int              @default(0)
+  createdAt       DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime         @default(now()) @updatedAt @db.Timestamptz(6)
   favourites      UserFavourite[]
+  workoutSessions WorkoutSession[]
 }
 
 model OtpRequest {
   id        String    @id @default(cuid())
   email     String
   code      String
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
+  expiresAt DateTime  @db.Timestamptz(6)
+  usedAt    DateTime? @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
 
   @@index([email, usedAt, expiresAt])
 }
 
 model Exercise {
-  id           String      @id @default(cuid())
-  name         String      @unique
-  category     SessionType
-  subCategory  String?
-  muscleGroups String[]
-  workoutExercises WorkoutExercise[]
+  id               String            @id @default(cuid())
+  name             String            @unique
+  category         SessionType
+  subCategory      String?
+  muscleGroups     String[]
   favouritedBy     UserFavourite[]
+  workoutExercises WorkoutExercise[]
 }
 
 model WorkoutSession {
-  id              String      @id @default(cuid())
+  id              String            @id @default(cuid())
   userId          String
   type            SessionType
-  startedAt       DateTime
-  endedAt         DateTime
+  startedAt       DateTime          @db.Timestamptz(6)
+  endedAt         DateTime          @db.Timestamptz(6)
   durationMinutes Int
   pointsEarned    Int
   gpsLat          Float?
   gpsLng          Float?
-  gpsVerified     Boolean     @default(false)
-  volumeScore     Float       @default(0)
+  gpsVerified     Boolean           @default(false)
+  volumeScore     Float             @default(0)
   weekLabel       String
-  createdAt       DateTime    @default(now())
-
-  user      User              @relation(fields: [userId], references: [id])
-  exercises WorkoutExercise[]
+  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
+  exercises       WorkoutExercise[]
+  user            User              @relation(fields: [userId], references: [id])
 
   @@index([userId, weekLabel])
   @@index([weekLabel, pointsEarned])
 }
 
 model WorkoutExercise {
-  id         String   @id @default(cuid())
+  id         String         @id @default(cuid())
   sessionId  String
   exerciseId String
   orderIndex Int
-  startedAt  DateTime
+  startedAt  DateTime       @db.Timestamptz(6)
   sets       Json
+  exercise   Exercise       @relation(fields: [exerciseId], references: [id])
+  session    WorkoutSession @relation(fields: [sessionId], references: [id])
 
-  session  WorkoutSession @relation(fields: [sessionId], references: [id])
-  exercise Exercise       @relation(fields: [exerciseId], references: [id])
+  @@index([exerciseId])
+  @@index([sessionId])
 }
 
 model UserFavourite {
   userId     String
   exerciseId String
-  createdAt  DateTime @default(now())
-
-  user     User     @relation(fields: [userId], references: [id])
-  exercise Exercise @relation(fields: [exerciseId], references: [id])
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
   @@id([userId, exerciseId])
+  @@index([exerciseId])
+}
+
+enum SessionType {
+  PUSH
+  PULL
 }

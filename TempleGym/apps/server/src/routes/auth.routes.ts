@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { generateOtp, createOtpRequest, verifyOtp } from '../services/otp.service';
 import { sendOtpEmail } from '../services/email.service';
 import { signToken } from '../services/jwt.service';
-import { prisma } from '../utils/prisma';
+import { prisma } from '../lib/prisma';
 
 const router = Router();
 
@@ -15,8 +15,8 @@ const requestOtpSchema = z.object({
 });
 
 const verifyOtpSchema = z.object({
-  email: z.string().email(),
-  code:  z.string().length(6),
+  email: z.string().email().endsWith('@temple.edu', { message: 'Must be a @temple.edu address' }),
+  code: z.string().length(6),
 });
 
 // POST /auth/request-otp
@@ -38,7 +38,13 @@ router.post('/request-otp', async (req: Request, res: Response) => {
 
   const code = generateOtp();
   await createOtpRequest(email, code);
-  await sendOtpEmail(email, code);
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[OTP DEV] ${email} => ${code}`);
+  } else {
+    await sendOtpEmail(email, code);
+  }
+
   return res.status(200).json({ message: 'OTP sent' });
 });
 

@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { config } from '../config';
-import { prisma } from '../utils/prisma';
+import { prisma } from '../lib/prisma';
 
 export function generateOtp(): string {
   return String(Math.floor(100000 + Math.random() * 900000));
