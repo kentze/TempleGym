@@ -12,7 +12,9 @@
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "dependencies": {
+    "expo": "~55.0.8",
+    "expo-image": "~55.0.6",
     "moti": "^0.30.0",
-    "react-native-reanimated": "^4.2.3"
+    "react-native-reanimated": "~4.2.1"
   }
 }
