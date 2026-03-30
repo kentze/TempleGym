@@ -24,6 +24,7 @@ export async function sendOtpEmail(to: string, code: string): Promise<void> {
 
   if (!res.ok) {
     const body = await res.text();
+    console.error(`Resend API error ${res.status}: ${body}`);
     throw new Error(`Resend API error ${res.status}: ${body}`);
   }
 }
