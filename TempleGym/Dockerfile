@@ -9,7 +9,7 @@ WORKDIR /app/TempleGym
 
 RUN npm install --legacy-peer-deps
 
-RUN cd apps/server && npx prisma generate && npm run build
+RUN cd apps/server && npx prisma generate && npm run build && ls -la dist/
 
 EXPOSE 3000
 
