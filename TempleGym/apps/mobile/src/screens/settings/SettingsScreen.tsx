@@ -10,12 +10,14 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
 import type { UpdateProfileBody, UserProfile } from '@templegym/types';
 
 export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
   const { user, setUser, logout } = useAuthStore();
 
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
@@ -23,6 +25,21 @@ export default function SettingsScreen() {
   const [weightKg, setWeightKg]       = useState(user?.weightKg?.toString() ?? '');
   const [gpsEnabled, setGpsEnabled]   = useState(user?.gpsEnabled ?? true);
   const [preferMetric, setPreferMetric] = useState(user?.preferMetric ?? true);
+
+  function handleUnitToggle(toMetric: boolean) {
+    setPreferMetric(toMetric);
+    const h = parseFloat(heightCm);
+    const w = parseFloat(weightKg);
+    if (toMetric) {
+      // imperial → metric
+      if (!isNaN(h)) setHeightCm((h * 2.54).toFixed(1));
+      if (!isNaN(w)) setWeightKg((w / 2.20462).toFixed(1));
+    } else {
+      // metric → imperial
+      if (!isNaN(h)) setHeightCm((h / 2.54).toFixed(1));
+      if (!isNaN(w)) setWeightKg((w * 2.20462).toFixed(1));
+    }
+  }
   const [saving, setSaving]           = useState(false);
   const [error, setError]             = useState<string | null>(null);
   const [saved, setSaved]             = useState(false);
@@ -84,7 +101,7 @@ export default function SettingsScreen() {
   const unitLabel = preferMetric ? 'kg / cm' : 'lbs / in';
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + 20 }]}>
       <Text style={styles.heading}>Settings</Text>
 
       <View style={styles.section}>
@@ -150,7 +167,7 @@ export default function SettingsScreen() {
           </View>
           <Switch
             value={preferMetric}
-            onValueChange={setPreferMetric}
+            onValueChange={handleUnitToggle}
             trackColor={{ true: Colors.primary }}
             thumbColor={Colors.text}
           />

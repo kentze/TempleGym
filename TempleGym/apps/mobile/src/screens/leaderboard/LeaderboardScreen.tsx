@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
@@ -20,7 +21,8 @@ function formatReset(iso: string): string {
 }
 
 export default function LeaderboardScreen() {
-  const user = useAuthStore((s) => s.user);
+  const user   = useAuthStore((s) => s.user);
+  const insets = useSafeAreaInsets();
 
   const [data, setData]           = useState<LeaderboardResponse | null>(null);
   const [loading, setLoading]     = useState(true);
@@ -87,7 +89,7 @@ export default function LeaderboardScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.heading}>
         <Text style={styles.headingText}>Weekly Board</Text>
         <Text style={styles.headingMeta}>{data.week} · resets {formatReset(data.resetAt)}</Text>

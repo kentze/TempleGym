@@ -8,11 +8,13 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
 import type { Exercise } from '@templegym/types';
 
 export default function FavouritesScreen() {
+  const insets = useSafeAreaInsets();
   const [favourites, setFavourites] = useState<Exercise[]>([]);
   const [loading, setLoading]       = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -76,7 +78,7 @@ export default function FavouritesScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <Text style={styles.heading}>Favourites</Text>
       {error ? <Text style={styles.inlineError}>{error}</Text> : null}
       <FlatList
