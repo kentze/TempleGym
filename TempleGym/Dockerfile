@@ -5,6 +5,9 @@ WORKDIR /app
 # Copy entire repo (dockerignore excludes heavy/unnecessary stuff)
 COPY . .
 
+# Debug: show what was copied
+RUN ls -la
+
 # Install all workspace dependencies from root
 RUN npm install --legacy-peer-deps
 
