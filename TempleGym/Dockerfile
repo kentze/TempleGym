@@ -2,16 +2,13 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy entire repo (dockerignore excludes heavy/unnecessary stuff)
 COPY . .
 
-# Debug: show what was copied
-RUN ls -la
+# All files land in /app/TempleGym/ — switch into it
+WORKDIR /app/TempleGym
 
-# Install all workspace dependencies from root
 RUN npm install --legacy-peer-deps
 
-# Generate Prisma client and build server
 RUN cd apps/server && npx prisma generate && npm run build
 
 EXPOSE 3000
