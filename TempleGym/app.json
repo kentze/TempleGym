@@ -1,5 +1,8 @@
 {
   "plugins": [
     "expo-image"
-  ]
+  ],
+  "ios": {
+    "bundleIdentifier": "com.anonymous.templegym"
+  }
 }

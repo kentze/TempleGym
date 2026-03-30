@@ -11,15 +11,15 @@ const router = Router();
 
 const setSchema = z.object({
   setNumber: z.number().int().min(1),
-  weightKg:  z.number().min(0),
-  reps:      z.number().int().min(1),
+  weightKg:  z.number().min(0).max(250),
+  reps:      z.number().int().min(1).max(50),
 });
 
 const exerciseEntrySchema = z.object({
   exerciseId: z.string().cuid(),
   orderIndex: z.number().int().min(0),
   startedAt:  z.string().datetime(),
-  sets:       z.array(setSchema).min(1),
+  sets:       z.array(setSchema).min(1).max(20),
 });
 
 const submitWorkoutSchema = z.object({

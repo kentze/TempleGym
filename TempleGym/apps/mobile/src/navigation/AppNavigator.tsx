@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Colors } from '../constants/colors';
-import Sidebar from './Sidebar';
+import BottomTabBar from './BottomTabBar';
 import { MainStackParamList } from './types';
 
 import HomeScreen           from '../screens/home/HomeScreen';
@@ -13,13 +13,14 @@ import SessionDetailScreen  from '../screens/history/SessionDetailScreen';
 import LeaderboardScreen    from '../screens/leaderboard/LeaderboardScreen';
 import FavouritesScreen     from '../screens/favourites/FavouritesScreen';
 import SettingsScreen       from '../screens/settings/SettingsScreen';
+import AddRoutineScreen      from '../screens/routine/AddRoutineScreen';
+import ExercisePickerScreen  from '../screens/routine/ExercisePickerScreen';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
 export default function AppNavigator() {
   return (
     <View style={styles.container}>
-      <Sidebar />
       <View style={styles.content}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home"           component={HomeScreen} />
@@ -30,13 +31,16 @@ export default function AppNavigator() {
           <Stack.Screen name="Leaderboard"    component={LeaderboardScreen} />
           <Stack.Screen name="Favourites"     component={FavouritesScreen} />
           <Stack.Screen name="Settings"       component={SettingsScreen} />
+          <Stack.Screen name="AddRoutine"      component={AddRoutineScreen} />
+          <Stack.Screen name="ExercisePicker" component={ExercisePickerScreen} />
         </Stack.Navigator>
       </View>
+      <BottomTabBar />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, flexDirection: 'row', backgroundColor: Colors.background },
+  container: { flex: 1, flexDirection: 'column', backgroundColor: Colors.background },
   content:   { flex: 1 },
 });

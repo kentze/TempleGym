@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
 import type { MainStackParamList } from '../../navigation/types';
@@ -25,6 +26,7 @@ function formatDate(iso: string): string {
 
 export default function HistoryScreen() {
   const navigation = useNavigation<Nav>();
+  const insets     = useSafeAreaInsets();
 
   const [sessions, setSessions]       = useState<WorkoutSession[]>([]);
   const [total, setTotal]             = useState(0);
@@ -87,7 +89,7 @@ export default function HistoryScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <Text style={styles.heading}>History</Text>
       <FlatList
         data={sessions}

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
@@ -36,6 +37,7 @@ function formatElapsed(seconds: number): string {
 
 export default function SessionLoggingScreen() {
   const navigation    = useNavigation<Nav>();
+  const insets        = useSafeAreaInsets();
   const user          = useAuthStore((s) => s.user);
   const { activeSession, addExercise, addSet, endSession, isSubmitting, clearSession } = useWorkoutStore();
   const { getCoords }  = useGps();
@@ -99,6 +101,14 @@ export default function SessionLoggingScreen() {
       setError('Enter valid weight and reps before adding a set.');
       return;
     }
+    if (weight > 250) {
+      setError('Weight cannot exceed 250 kg per set.');
+      return;
+    }
+    if (reps > 50) {
+      setError('Reps cannot exceed 50 per set.');
+      return;
+    }
     setError(null);
     addSet(exerciseId, { weightKg: weight, reps });
     setSetInputs((prev) => ({ ...prev, [exerciseId]: { weightKg: '', reps: '' } }));
@@ -137,7 +147,7 @@ export default function SessionLoggingScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <View>
           <Text style={styles.sessionType}>{activeSession.type} Session</Text>
           <Text style={styles.timer}>{formatElapsed(elapsed)}</Text>

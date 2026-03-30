@@ -26,5 +26,6 @@ Thumbs.db
 
 # Expo
 apps/mobile/.expo/
+ios/
 apps/mobile/ios/
 apps/mobile/android/
