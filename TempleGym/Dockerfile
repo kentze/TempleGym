@@ -4,16 +4,15 @@ WORKDIR /app
 
 COPY . .
 
-# Install from monorepo root to resolve workspace packages
+# Install ALL deps including devDependencies (needed for TypeScript compiler)
 WORKDIR /app/TempleGym
-RUN npm install --legacy-peer-deps
+RUN NODE_ENV=development npm install --legacy-peer-deps
 
-# Build server from its own directory
+# Build server
 WORKDIR /app/TempleGym/apps/server
-RUN npx prisma generate && npm run build
-
-# Verify output exists
-RUN ls -la dist/
+RUN npx prisma generate
+RUN npm run build
+RUN ls -la dist/ && test -f dist/index.js || (echo "ERROR: dist/index.js not produced by tsc" && exit 1)
 
 EXPOSE 3000
 
