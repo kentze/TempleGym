@@ -4,15 +4,17 @@ WORKDIR /app
 
 COPY . .
 
-# All files land in /app/TempleGym/ — switch into it
+# Install from monorepo root to resolve workspace packages
 WORKDIR /app/TempleGym
-
 RUN npm install --legacy-peer-deps
 
-RUN cd apps/server && npx prisma generate && npm run build
+# Build server from its own directory
+WORKDIR /app/TempleGym/apps/server
+RUN npx prisma generate && npm run build
 
-RUN find /app/TempleGym/apps/server/dist -name "*.js" | head -20
+# Verify output exists
+RUN ls -la dist/
 
 EXPOSE 3000
 
-CMD ["node", "/app/TempleGym/apps/server/dist/index.js"]
+CMD ["node", "dist/index.js"]
