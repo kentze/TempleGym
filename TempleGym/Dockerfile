@@ -2,12 +2,8 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy monorepo root files
-COPY package.json package-lock.json ./
-COPY packages/ ./packages/
-
-# Copy server source
-COPY apps/server/ ./apps/server/
+# Copy entire repo (dockerignore excludes heavy/unnecessary stuff)
+COPY . .
 
 # Install all workspace dependencies from root
 RUN npm install --legacy-peer-deps

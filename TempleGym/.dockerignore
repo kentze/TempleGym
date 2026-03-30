@@ -1,0 +1,7 @@
+node_modules
+apps/mobile
+.expo
+.expo-shared
+*.log
+dist
+ios
