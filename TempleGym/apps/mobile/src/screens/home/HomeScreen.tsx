@@ -27,7 +27,7 @@ const TIERS = [
   { name: 'Gold',     min: 501,  color: '#F0C040' },
   { name: 'Silver',   min: 201,  color: '#CBD5E1' },
   { name: 'Bronze',   min: 1,    color: '#CD7F32' },
-  { name: 'Grey',     min: 0,    color: '#6B7280' },
+  { name: 'Unranked', min: 0,    color: '#6B7280' },
 ];
 
 function getTier(pts: number) {
@@ -191,7 +191,7 @@ export default function HomeScreen() {
 
       {/* Stats */}
       <View style={styles.statsRow}>
-        <View style={styles.statCard}>
+        <View style={[styles.statCard, { borderRadius: 10, padding: 8 }]}>
           <Text style={styles.statValue}>{user?.totalPoints ?? 0}</Text>
           <Text style={styles.statLabel}>Total Points</Text>
         </View>
