@@ -75,12 +75,14 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
         endedAt:   new Date().toISOString(),
         gpsLat,
         gpsLng,
-        exercises: session.exercises.map((ex) => ({
-          exerciseId: ex.exerciseId,
-          orderIndex: ex.orderIndex,
-          startedAt:  ex.startedAt.toISOString(),
-          sets:       ex.sets,
-        })),
+        exercises: session.exercises
+          .filter((ex) => ex.sets.length > 0)
+          .map((ex) => ({
+            exerciseId: ex.exerciseId,
+            orderIndex: ex.orderIndex,
+            startedAt:  ex.startedAt.toISOString(),
+            sets:       ex.sets,
+          })),
       });
       set({ activeSession: null });
     } finally {

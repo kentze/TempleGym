@@ -115,8 +115,9 @@ export default function SessionLoggingScreen() {
   }
 
   async function handleEndSession() {
-    if (!activeSession || activeSession.exercises.length === 0) {
-      Alert.alert('No exercises', 'Add at least one exercise before ending the session.');
+    const exercisesWithSets = activeSession.exercises.filter((e) => e.sets.length > 0);
+    if (!activeSession || exercisesWithSets.length === 0) {
+      Alert.alert('No sets logged', 'Add at least one set before ending the session.');
       return;
     }
     let lat: number | undefined;
