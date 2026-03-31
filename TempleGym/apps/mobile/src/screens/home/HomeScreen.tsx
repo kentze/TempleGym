@@ -20,14 +20,14 @@ import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
 
 const TIERS = [
-  { name: 'Champion', min: 2801, color: '#FF4500', icon: '🏆' },
-  { name: 'Master',   min: 2001, color: '#C084FC', icon: '💎' },
-  { name: 'Diamond',  min: 1401, color: '#67E8F9', icon: '✦'  },
-  { name: 'Platinum', min: 901,  color: '#94A3B8', icon: '⚡'  },
-  { name: 'Gold',     min: 501,  color: '#F0C040', icon: '🥇'  },
-  { name: 'Silver',   min: 201,  color: '#CBD5E1', icon: '🥈'  },
-  { name: 'Bronze',   min: 1,    color: '#CD7F32', icon: '🥉'  },
-  { name: 'Grey',     min: 0,    color: '#6B7280', icon: '○'   },
+  { name: 'Champion', min: 2801, color: '#FF4500' },
+  { name: 'Master',   min: 2001, color: '#C084FC' },
+  { name: 'Diamond',  min: 1401, color: '#67E8F9' },
+  { name: 'Platinum', min: 901,  color: '#94A3B8' },
+  { name: 'Gold',     min: 501,  color: '#F0C040' },
+  { name: 'Silver',   min: 201,  color: '#CBD5E1' },
+  { name: 'Bronze',   min: 1,    color: '#CD7F32' },
+  { name: 'Grey',     min: 0,    color: '#6B7280' },
 ];
 
 function getTier(pts: number) {
@@ -194,13 +194,7 @@ export default function HomeScreen() {
         <View style={styles.statCard}>
           <Text style={[styles.statValue, { color: getTier(user?.weeklyPoints ?? 0).color }]}>{user?.weeklyPoints ?? 0}</Text>
           <Text style={styles.statLabel}>This Week</Text>
-          <View style={styles.tierRow}>
-            <Text style={styles.laurel}>❧</Text>
-            <Text style={[styles.statTier, { color: getTier(user?.weeklyPoints ?? 0).color }]}>
-              {getTier(user?.weeklyPoints ?? 0).icon} {getTier(user?.weeklyPoints ?? 0).name}
-            </Text>
-            <Text style={[styles.laurel, styles.laurelRight]}>❧</Text>
-          </View>
+          <Text style={[styles.statTier, { color: getTier(user?.weeklyPoints ?? 0).color }]}>{getTier(user?.weeklyPoints ?? 0).name}</Text>
         </View>
       </View>
 
@@ -521,9 +515,6 @@ const styles = StyleSheet.create({
   statLabel:             { fontSize: 12, color: Colors.textMuted },
   statDivider:           { width: 1, backgroundColor: Colors.border, marginHorizontal: 16 },
   statTier:              { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  tierRow:               { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  laurel:                { fontSize: 14, color: Colors.textMuted },
-  laurelRight:           { transform: [{ scaleX: -1 }] },
 
   // Session cards
   sectionLabel:          { fontSize: 13, fontWeight: '600', color: Colors.textMuted, letterSpacing: 0.5 },
