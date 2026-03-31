@@ -514,8 +514,8 @@ const styles = StyleSheet.create({
   ghostCardSub:          { fontSize: 12, color: Colors.textMuted },
 
   // Stats
-  statsRow:              { flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, padding: 8 },
-  statCard:              { flex: 1, alignItems: 'center', gap: 4 },
+  statsRow:              { flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, padding: 4 },
+  statCard:              { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
   statValue:             { fontSize: 28, fontWeight: '700', color: Colors.primary },
   statLabel:             { fontSize: 12, color: Colors.textMuted },
   statDivider:           { width: 1, backgroundColor: Colors.border, marginHorizontal: 16 },
