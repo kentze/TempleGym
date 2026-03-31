@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   exerciseName:       { fontSize: 16, fontWeight: '600', color: Colors.text },
   setRow:             { fontSize: 13, color: Colors.textMuted },
   setInputRow:        { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  setInput:           { flex: 1, backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, color: Colors.text, fontSize: 14 },
+  setInput:           { flex: 1, backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, color: Colors.text, fontSize: 14, letterSpacing: 0 },
   addSetButton:       { backgroundColor: Colors.primaryFaded, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
   addSetButtonText:   { color: Colors.primary, fontSize: 14, fontWeight: '600' },
   addExerciseButton:  { borderWidth: 1, borderColor: Colors.border, borderRadius: 12, borderStyle: 'dashed', paddingVertical: 14, alignItems: 'center' },

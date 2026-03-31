@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
@@ -18,6 +19,7 @@ import type { UpdateProfileBody, UserProfile } from '@templegym/types';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
   const { user, setUser, logout } = useAuthStore();
 
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
@@ -84,6 +86,7 @@ export default function SettingsScreen() {
       const { data } = await api.patch<UserProfile>('/me/profile', body);
       setUser(data);
       setSaved(true);
+      navigation.navigate('Home');
     } catch (e: any) {
       setError(e.response?.data?.error ?? 'Failed to save. Try again.');
     } finally {
@@ -207,7 +210,7 @@ const styles = StyleSheet.create({
   sectionLabel:      { fontSize: 12, fontWeight: '600', color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
   field:             { gap: 6 },
   fieldLabel:        { fontSize: 13, color: Colors.textMuted },
-  input:             { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11, color: Colors.text, fontSize: 15 },
+  input:             { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11, color: Colors.text, fontSize: 15, letterSpacing: 0 },
   toggle:            { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Colors.surface, borderRadius: 10, borderWidth: 1, borderColor: Colors.border, padding: 14 },
   toggleLabel:       { fontSize: 15, color: Colors.text },
   toggleSub:         { fontSize: 12, color: Colors.textMuted, marginTop: 2 },

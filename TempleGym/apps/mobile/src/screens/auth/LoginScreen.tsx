@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   prefixInput:      { position: 'absolute', top: 18, left: 0, right: 0, bottom: 0, paddingHorizontal: 16, fontSize: 16 },
   suffixBox:        { paddingHorizontal: 12, borderLeftWidth: 1, borderLeftColor: Colors.border, height: '100%', justifyContent: 'center' },
   suffixText:       { color: Colors.textMuted, fontSize: 16 },
-  input:          { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, color: Colors.text, fontSize: 16 },
+  input:          { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, color: Colors.text, fontSize: 16, letterSpacing: 0 },
   inputCode:      { textAlign: 'center', letterSpacing: 8, fontSize: 22 },
   error:          { color: Colors.error, fontSize: 13, textAlign: 'center' },
   button:         { backgroundColor: Colors.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center' },

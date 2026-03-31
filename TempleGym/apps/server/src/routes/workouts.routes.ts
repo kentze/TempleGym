@@ -49,8 +49,18 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   const durationMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
   const gpsVerified     = gpsLat != null && gpsLng != null ? isAtGym(gpsLat, gpsLng) : false;
   const volumeScore     = computeVolumeScore(exercises);
-  const pointsEarned    = computePoints({ durationMinutes, volumeScore, gpsVerified });
   const weekLabel       = getWeekLabel(start);
+
+  const DAILY_CAP = 1000;
+  const dayStart  = new Date(start); dayStart.setHours(0, 0, 0, 0);
+  const dayEnd    = new Date(start); dayEnd.setHours(23, 59, 59, 999);
+  const todayPoints = await prisma.workoutSession.aggregate({
+    where: { userId: req.user!.id, startedAt: { gte: dayStart, lte: dayEnd } },
+    _sum:  { pointsEarned: true },
+  });
+  const earnedToday = todayPoints._sum.pointsEarned ?? 0;
+  const rawPoints   = computePoints({ durationMinutes, volumeScore, gpsVerified });
+  const pointsEarned = Math.max(0, Math.min(rawPoints, DAILY_CAP - earnedToday));
 
   const session = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const s = await tx.workoutSession.create({

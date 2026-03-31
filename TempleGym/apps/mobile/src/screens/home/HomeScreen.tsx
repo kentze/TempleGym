@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
   popupOverlay:          { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   barbellPopup:          { position: 'absolute', right: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: Colors.surface, borderRadius: 8, borderWidth: 1, borderColor: Colors.border, paddingHorizontal: 12, paddingVertical: 8, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 5 },
   barbellPopupText:      { fontSize: 13, color: Colors.text, fontWeight: '500' },
-  folderInput:           { backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11, color: Colors.text, fontSize: 15 },
+  folderInput:           { backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11, color: Colors.text, fontSize: 15, letterSpacing: 0 },
   planCancelBtn:         { paddingVertical: 10, alignItems: 'center' },
   planCancelText:        { color: Colors.textMuted, fontSize: 14 },
 });

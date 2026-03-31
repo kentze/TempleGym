@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   content:            { padding: 20, gap: 10, paddingBottom: 24 },
   sectionLabel:       { fontSize: 12, fontWeight: '600', color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.8 },
   sectionSpacing:     { marginTop: 12 },
-  input:              { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, color: Colors.text, fontSize: 16 },
+  input:              { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, color: Colors.text, fontSize: 16, letterSpacing: 0 },
   emptyContent:       { alignItems: 'center', paddingVertical: 24, gap: 8, backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border },
   emptyText:          { fontSize: 13, color: Colors.textMuted },
   exerciseList:       { gap: 8 },
