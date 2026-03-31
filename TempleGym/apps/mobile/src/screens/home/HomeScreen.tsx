@@ -20,12 +20,12 @@ import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
 
 const TIERS = [
-  { name: 'Champion', min: 6501, color: '#FF4500' },
-  { name: 'Master',   min: 5001, color: '#C084FC' },
-  { name: 'Diamond',  min: 3501, color: '#67E8F9' },
-  { name: 'Platinum', min: 2001, color: '#94A3B8' },
-  { name: 'Gold',     min: 1001, color: '#F0C040' },
-  { name: 'Silver',   min: 501,  color: '#CBD5E1' },
+  { name: 'Champion', min: 2801, color: '#FF4500' },
+  { name: 'Master',   min: 2001, color: '#C084FC' },
+  { name: 'Diamond',  min: 1401, color: '#67E8F9' },
+  { name: 'Platinum', min: 901,  color: '#94A3B8' },
+  { name: 'Gold',     min: 501,  color: '#F0C040' },
+  { name: 'Silver',   min: 201,  color: '#CBD5E1' },
   { name: 'Bronze',   min: 1,    color: '#CD7F32' },
   { name: 'Grey',     min: 0,    color: '#6B7280' },
 ];
