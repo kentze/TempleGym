@@ -33,6 +33,11 @@ const TIERS = [
 function getTier(pts: number) {
   return TIERS.find((t) => pts >= t.min) ?? TIERS[TIERS.length - 1];
 }
+
+function tierBg(pts: number) {
+  const hex = getTier(pts).color;
+  return hex + '18';
+}
 import { useAuthStore } from '../../store/auth.store';
 import { useWorkoutStore } from '../../store/workout.store';
 import { useRoutinesStore } from '../../store/routines.store';
@@ -191,7 +196,7 @@ export default function HomeScreen() {
           <Text style={styles.statLabel}>Total Points</Text>
         </View>
         <View style={styles.statDivider} />
-        <View style={styles.statCard}>
+        <View style={[styles.statCard, { backgroundColor: tierBg(user?.weeklyPoints ?? 0), borderRadius: 10, padding: 8 }]}>
           <Text style={[styles.statValue, { color: getTier(user?.weeklyPoints ?? 0).color }]}>{user?.weeklyPoints ?? 0}</Text>
           <Text style={styles.statLabel}>This Week</Text>
           <Text style={[styles.statTier, { color: getTier(user?.weeklyPoints ?? 0).color }]}>{getTier(user?.weeklyPoints ?? 0).name}</Text>
