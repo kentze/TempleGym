@@ -18,6 +18,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
+
+const TIERS = [
+  { name: 'Champion', min: 6501, color: '#FF4500' },
+  { name: 'Master',   min: 5001, color: '#C084FC' },
+  { name: 'Diamond',  min: 3501, color: '#67E8F9' },
+  { name: 'Platinum', min: 2001, color: '#94A3B8' },
+  { name: 'Gold',     min: 1001, color: '#F0C040' },
+  { name: 'Silver',   min: 501,  color: '#CBD5E1' },
+  { name: 'Bronze',   min: 1,    color: '#CD7F32' },
+  { name: 'Grey',     min: 0,    color: '#6B7280' },
+];
+
+function getTier(pts: number) {
+  return TIERS.find((t) => pts >= t.min) ?? TIERS[TIERS.length - 1];
+}
 import { useAuthStore } from '../../store/auth.store';
 import { useWorkoutStore } from '../../store/workout.store';
 import { useRoutinesStore } from '../../store/routines.store';
@@ -177,8 +192,9 @@ export default function HomeScreen() {
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{user?.weeklyPoints ?? 0}</Text>
+          <Text style={[styles.statValue, { color: getTier(user?.weeklyPoints ?? 0).color }]}>{user?.weeklyPoints ?? 0}</Text>
           <Text style={styles.statLabel}>This Week</Text>
+          <Text style={[styles.statTier, { color: getTier(user?.weeklyPoints ?? 0).color }]}>{getTier(user?.weeklyPoints ?? 0).name}</Text>
         </View>
       </View>
 
@@ -498,6 +514,7 @@ const styles = StyleSheet.create({
   statValue:             { fontSize: 28, fontWeight: '700', color: Colors.primary },
   statLabel:             { fontSize: 12, color: Colors.textMuted },
   statDivider:           { width: 1, backgroundColor: Colors.border, marginHorizontal: 16 },
+  statTier:              { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
 
   // Session cards
   sectionLabel:          { fontSize: 13, fontWeight: '600', color: Colors.textMuted, letterSpacing: 0.5 },
