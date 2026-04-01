@@ -5,6 +5,7 @@ import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
+import { useAuthStore } from '../../store/auth.store';
 import type { MainStackParamList } from '../../navigation/types';
 
 type Nav   = NativeStackNavigationProp<MainStackParamList, 'SessionDetail'>;
@@ -17,10 +18,11 @@ function formatDate(iso: string): string {
 }
 
 export default function SessionDetailScreen() {
-  const navigation = useNavigation<Nav>();
-  const insets     = useSafeAreaInsets();
-  const { params } = useRoute<Route>();
-  const { session } = params;
+  const navigation   = useNavigation<Nav>();
+  const insets       = useSafeAreaInsets();
+  const { params }   = useRoute<Route>();
+  const { session }  = params;
+  const preferMetric = useAuthStore((s) => s.user?.preferMetric ?? true);
 
   return (
     <View style={styles.container}>
@@ -58,11 +60,16 @@ export default function SessionDetailScreen() {
         {session.exercises.map((ex: { id: string; exerciseId: string; sets: unknown }) => (
           <View key={ex.id} style={styles.exerciseCard}>
             <Text style={styles.exerciseName}>{ex.exerciseId}</Text>
-            {(ex.sets as { setNumber: number; weightKg: number; reps: number }[]).map((s) => (
-              <Text key={s.setNumber} style={styles.setRow}>
-                Set {s.setNumber}: {s.weightKg}kg x {s.reps} reps
-              </Text>
-            ))}
+            {(ex.sets as { setNumber: number; weightKg: number; reps: number }[]).map((s) => {
+              const displayWeight = preferMetric
+                ? `${s.weightKg}kg`
+                : `${(s.weightKg * 2.20462).toFixed(1)}lbs`;
+              return (
+                <Text key={s.setNumber} style={styles.setRow}>
+                  Set {s.setNumber}: {displayWeight} x {s.reps} reps
+                </Text>
+              );
+            })}
           </View>
         ))}
       </ScrollView>

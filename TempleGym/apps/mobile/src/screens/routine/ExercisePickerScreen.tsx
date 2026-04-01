@@ -5,8 +5,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
 } from 'react-native';
+import LogoLoader from '../../components/LogoLoader';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -83,7 +83,7 @@ export default function ExercisePickerScreen() {
 
       {/* Exercise slider */}
       {loading ? (
-        <ActivityIndicator color={Colors.primary} style={styles.loader} />
+        <LogoLoader />
       ) : (
         <FlatList
           data={filtered}

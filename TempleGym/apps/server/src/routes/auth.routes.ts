@@ -4,8 +4,15 @@ import { generateOtp, createOtpRequest, verifyOtp } from '../services/otp.servic
 import { sendOtpEmail } from '../services/email.service';
 import { signToken } from '../services/jwt.service';
 import { prisma } from '../utils/prisma';
+import { config } from '../config';
 
 const router = Router();
+
+const DEMO_CODE = '000000';
+function isDemoAccount(email: string): boolean {
+  if (!config.DEMO_EMAILS) return false;
+  return config.DEMO_EMAILS.split(',').map((e) => e.trim().toLowerCase()).includes(email.toLowerCase());
+}
 
 // In-memory rate limit: max 3 OTP requests per email per 10 minutes
 const otpAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -36,6 +43,10 @@ router.post('/request-otp', async (req: Request, res: Response) => {
     resetAt: attempts?.resetAt && attempts.resetAt > now ? attempts.resetAt : now + 10 * 60 * 1000,
   });
 
+  if (isDemoAccount(email)) {
+    return res.status(200).json({ message: 'OTP sent' }); // demo: no email sent, code is always 000000
+  }
+
   const code = generateOtp();
   await createOtpRequest(email, code);
   await sendOtpEmail(email, code);
@@ -48,8 +59,13 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { email, code } = parsed.data;
-  const valid = await verifyOtp(email, code);
-  if (!valid) return res.status(401).json({ error: 'Invalid or expired OTP' });
+
+  if (isDemoAccount(email)) {
+    if (code !== DEMO_CODE) return res.status(401).json({ error: 'Invalid or expired OTP' });
+  } else {
+    const valid = await verifyOtp(email, code);
+    if (!valid) return res.status(401).json({ error: 'Invalid or expired OTP' });
+  }
 
   const user  = await prisma.user.upsert({ where: { email }, update: {}, create: { email } });
   const token = signToken({ userId: user.id, email: user.email });

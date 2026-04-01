@@ -23,23 +23,33 @@ export default function SettingsScreen() {
   const { user, setUser, logout } = useAuthStore();
 
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
-  const [heightCm, setHeightCm]       = useState(user?.heightCm?.toString() ?? '');
-  const [weightKg, setWeightKg]       = useState(user?.weightKg?.toString() ?? '');
   const [gpsEnabled, setGpsEnabled]   = useState(user?.gpsEnabled ?? true);
   const [preferMetric, setPreferMetric] = useState(user?.preferMetric ?? true);
 
+  // Display values — stored in metric, shown in user's preferred unit
+  const [heightDisplay, setHeightDisplay] = useState(() => {
+    const h = user?.heightCm;
+    if (!h) return '';
+    return (user?.preferMetric ? h : h / 2.54).toFixed(1);
+  });
+  const [weightDisplay, setWeightDisplay] = useState(() => {
+    const w = user?.weightKg;
+    if (!w) return '';
+    return (user?.preferMetric ? w : w * 2.20462).toFixed(1);
+  });
+
   function handleUnitToggle(toMetric: boolean) {
     setPreferMetric(toMetric);
-    const h = parseFloat(heightCm);
-    const w = parseFloat(weightKg);
+    const h = parseFloat(heightDisplay);
+    const w = parseFloat(weightDisplay);
     if (toMetric) {
       // imperial → metric
-      if (!isNaN(h)) setHeightCm((h * 2.54).toFixed(1));
-      if (!isNaN(w)) setWeightKg((w / 2.20462).toFixed(1));
+      if (!isNaN(h)) setHeightDisplay((h * 2.54).toFixed(1));
+      if (!isNaN(w)) setWeightDisplay((w / 2.20462).toFixed(1));
     } else {
       // metric → imperial
-      if (!isNaN(h)) setHeightCm((h / 2.54).toFixed(1));
-      if (!isNaN(w)) setWeightKg((w * 2.20462).toFixed(1));
+      if (!isNaN(h)) setHeightDisplay((h / 2.54).toFixed(1));
+      if (!isNaN(w)) setWeightDisplay((w * 2.20462).toFixed(1));
     }
   }
   const [saving, setSaving]           = useState(false);
@@ -63,19 +73,25 @@ export default function SettingsScreen() {
       }
       body.displayName = displayName.trim();
     }
-    if (heightCm) {
-      const h = parseFloat(heightCm);
+    if (heightDisplay) {
+      const raw = parseFloat(heightDisplay);
+      const h   = preferMetric ? raw : raw * 2.54; // convert in → cm if imperial
       if (isNaN(h) || h < 100 || h > 250) {
-        setError('Height must be between 100 and 250 cm.');
+        setError(preferMetric
+          ? 'Height must be between 100 and 250 cm.'
+          : 'Height must be between 39 and 98 in.');
         setSaving(false);
         return;
       }
-      body.heightCm = h;
+      body.heightCm = Math.round(h); // DB stores heightCm as Int
     }
-    if (weightKg) {
-      const w = parseFloat(weightKg);
+    if (weightDisplay) {
+      const raw = parseFloat(weightDisplay);
+      const w   = preferMetric ? raw : raw / 2.20462; // convert lbs → kg if imperial
       if (isNaN(w) || w < 20 || w > 300) {
-        setError('Weight must be between 20 and 300 kg.');
+        setError(preferMetric
+          ? 'Weight must be between 20 and 300 kg.'
+          : 'Weight must be between 44 and 661 lbs.');
         setSaving(false);
         return;
       }
@@ -88,7 +104,8 @@ export default function SettingsScreen() {
       setSaved(true);
       navigation.navigate('Home');
     } catch (e: any) {
-      setError(e.response?.data?.error ?? 'Failed to save. Try again.');
+      const err = e.response?.data?.error;
+      setError(typeof err === 'string' ? err : 'Failed to save. Try again.');
     } finally {
       setSaving(false);
     }
@@ -129,8 +146,8 @@ export default function SettingsScreen() {
             placeholder={preferMetric ? '170' : '67'}
             placeholderTextColor={Colors.textMuted}
             keyboardType="decimal-pad"
-            value={heightCm}
-            onChangeText={setHeightCm}
+            value={heightDisplay}
+            onChangeText={setHeightDisplay}
           />
         </View>
 
@@ -141,8 +158,8 @@ export default function SettingsScreen() {
             placeholder={preferMetric ? '70' : '154'}
             placeholderTextColor={Colors.textMuted}
             keyboardType="decimal-pad"
-            value={weightKg}
-            onChangeText={setWeightKg}
+            value={weightDisplay}
+            onChangeText={setWeightDisplay}
           />
         </View>
       </View>

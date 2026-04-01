@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import LogoLoader from '../../components/LogoLoader';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +40,7 @@ export default function SessionLoggingScreen() {
   const navigation    = useNavigation<Nav>();
   const insets        = useSafeAreaInsets();
   const user          = useAuthStore((s) => s.user);
+  const preferMetric  = user?.preferMetric ?? true;
   const { activeSession, addExercise, addSet, endSession, isSubmitting, clearSession } = useWorkoutStore();
   const { getCoords }  = useGps();
 
@@ -101,8 +103,9 @@ export default function SessionLoggingScreen() {
       setError('Enter valid weight and reps before adding a set.');
       return;
     }
-    if (weight > 250) {
-      setError('Weight cannot exceed 250 kg per set.');
+    const maxWeight = preferMetric ? 250 : 550;
+    if (weight > maxWeight) {
+      setError(`Weight cannot exceed ${maxWeight} ${preferMetric ? 'kg' : 'lbs'} per set.`);
       return;
     }
     if (reps > 50) {
@@ -110,7 +113,8 @@ export default function SessionLoggingScreen() {
       return;
     }
     setError(null);
-    addSet(exerciseId, { weightKg: weight, reps });
+    const weightKg = preferMetric ? weight : weight / 2.20462;
+    addSet(exerciseId, { weightKg, reps });
     setSetInputs((prev) => ({ ...prev, [exerciseId]: { weightKg: '', reps: '' } }));
   }
 
@@ -165,16 +169,21 @@ export default function SessionLoggingScreen() {
           <View key={ex.exerciseId} style={styles.exerciseCard}>
             <Text style={styles.exerciseName}>{ex.name}</Text>
 
-            {ex.sets.map((s) => (
-              <Text key={s.setNumber} style={styles.setRow}>
-                Set {s.setNumber}: {s.weightKg}kg x {s.reps} reps
-              </Text>
-            ))}
+            {ex.sets.map((s) => {
+              const displayWeight = preferMetric
+                ? `${s.weightKg}kg`
+                : `${(s.weightKg * 2.20462).toFixed(1)}lbs`;
+              return (
+                <Text key={s.setNumber} style={styles.setRow}>
+                  Set {s.setNumber}: {displayWeight} x {s.reps} reps
+                </Text>
+              );
+            })}
 
             <View style={styles.setInputRow}>
               <TextInput
                 style={styles.setInput}
-                placeholder="kg"
+                placeholder={preferMetric ? 'kg' : 'lbs'}
                 placeholderTextColor={Colors.textMuted}
                 keyboardType="decimal-pad"
                 value={setInputs[ex.exerciseId]?.weightKg ?? ''}
@@ -225,7 +234,7 @@ export default function SessionLoggingScreen() {
             </TouchableOpacity>
           </View>
           {pickerLoading
-            ? <ActivityIndicator color={Colors.primary} style={{ marginTop: 32 }} />
+            ? <LogoLoader />
             : (
               <FlatList
                 data={pickable}

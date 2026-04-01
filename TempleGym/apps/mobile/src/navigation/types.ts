@@ -12,7 +12,7 @@ export interface SavedRoutine {
 }
 
 export type MainStackParamList = {
-  Home:            { newRoutine?: SavedRoutine } | undefined;
+  Home:            { newRoutine?: SavedRoutine; replaceIndex?: number } | undefined;
   Workout:         undefined;
   SessionLogging:  undefined;
   History:         undefined;
@@ -20,7 +20,7 @@ export type MainStackParamList = {
   Leaderboard:     undefined;
   Favourites:      undefined;
   Settings:        undefined;
-  AddRoutine:      { folderId: number | 'default'; folderName: string; selectedExercise?: Exercise };
+  AddRoutine:      { folderId: number | 'default'; folderName: string; selectedExercise?: Exercise; editIndex?: number; initialName?: string; initialExercises?: Exercise[] };
   ExercisePicker:  { folderId: number | 'default'; folderName: string };
 };
 
