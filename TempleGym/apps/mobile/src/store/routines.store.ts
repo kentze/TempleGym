@@ -21,12 +21,15 @@ interface RoutinesState {
   _defaultOpen: boolean;
   hydrated:     boolean;
 
-  hydrate:        () => Promise<void>;
-  addFolder:      (name: string) => void;
-  toggleFolder:   (id: number) => void;
-  addToFolder:    (folderId: number, routine: SavedRoutine) => void;
-  addToDefault:   (routine: SavedRoutine) => void;
-  setDefaultOpen: (open: boolean) => void;
+  hydrate:              () => Promise<void>;
+  addFolder:            (name: string) => void;
+  toggleFolder:         (id: number) => void;
+  addToFolder:          (folderId: number, routine: SavedRoutine) => void;
+  addToDefault:         (routine: SavedRoutine) => void;
+  setDefaultOpen:       (open: boolean) => void;
+  removeRoutineItem:    (folderId: number | 'default', index: number) => void;
+  duplicateRoutineItem: (folderId: number | 'default', index: number) => void;
+  replaceRoutineItem:   (folderId: number | 'default', index: number, routine: SavedRoutine) => void;
 }
 
 async function safe_set(key: string, value: string) {
@@ -114,5 +117,71 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
   setDefaultOpen: (open) => {
     safe_set(KEY_DEFAULT_OPEN, open ? '1' : '0');
     set({ _defaultOpen: open });
+  },
+
+  removeRoutineItem: (folderId, index) => {
+    if (folderId === 'default') {
+      set((s) => {
+        const next = s.defaultItems.filter((_, i) => i !== index);
+        safe_set(KEY_DEFAULT_ITEMS, JSON.stringify(next));
+        return { defaultItems: next };
+      });
+    } else {
+      set((s) => {
+        const next = s.folders.map((f) => {
+          if (f.id !== folderId) return f;
+          const items = f.items.filter((_, i) => i !== index);
+          safe_set(folderKey(f.id), JSON.stringify({ name: f.name, open: f.open, items }));
+          return { ...f, items };
+        });
+        return { folders: next };
+      });
+    }
+  },
+
+  duplicateRoutineItem: (folderId, index) => {
+    if (folderId === 'default') {
+      set((s) => {
+        const item = s.defaultItems[index];
+        if (!item) return s;
+        const copy = { ...item, name: `${item.name} (copy)` };
+        const next = [...s.defaultItems.slice(0, index + 1), copy, ...s.defaultItems.slice(index + 1)];
+        safe_set(KEY_DEFAULT_ITEMS, JSON.stringify(next));
+        return { defaultItems: next };
+      });
+    } else {
+      set((s) => {
+        const next = s.folders.map((f) => {
+          if (f.id !== folderId) return f;
+          const item = f.items[index];
+          if (!item) return f;
+          const copy = { ...item, name: `${item.name} (copy)` };
+          const items = [...f.items.slice(0, index + 1), copy, ...f.items.slice(index + 1)];
+          safe_set(folderKey(f.id), JSON.stringify({ name: f.name, open: f.open, items }));
+          return { ...f, items };
+        });
+        return { folders: next };
+      });
+    }
+  },
+
+  replaceRoutineItem: (folderId, index, routine) => {
+    if (folderId === 'default') {
+      set((s) => {
+        const next = s.defaultItems.map((item, i) => i === index ? routine : item);
+        safe_set(KEY_DEFAULT_ITEMS, JSON.stringify(next));
+        return { defaultItems: next };
+      });
+    } else {
+      set((s) => {
+        const next = s.folders.map((f) => {
+          if (f.id !== folderId) return f;
+          const items = f.items.map((item, i) => i === index ? routine : item);
+          safe_set(folderKey(f.id), JSON.stringify({ name: f.name, open: f.open, items }));
+          return { ...f, items };
+        });
+        return { folders: next };
+      });
+    }
   },
 }));

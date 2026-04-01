@@ -88,7 +88,8 @@ export default function LoginScreen() {
       await api.post('/auth/request-otp', { email: fullEmail });
       setStep('code');
     } catch (e: any) {
-      setError(e.response?.data?.error ?? 'Failed to send code. Try again.');
+      const err = e.response?.data?.error;
+      setError(typeof err === 'string' ? err : 'Failed to send code. Try again.');
     } finally {
       setLoading(false);
     }
@@ -109,7 +110,8 @@ export default function LoginScreen() {
       await setToken(data.token);
       setUser(data.user);
     } catch (e: any) {
-      setError(e.response?.data?.error ?? 'Invalid or expired code.');
+      const err = e.response?.data?.error;
+      setError(typeof err === 'string' ? err : 'Invalid or expired code.');
     } finally {
       setLoading(false);
     }

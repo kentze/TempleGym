@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import LogoLoader from '../../components/LogoLoader';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -69,13 +70,7 @@ export default function HistoryScreen() {
     setLoadingMore(false);
   }
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator color={Colors.primary} />
-      </View>
-    );
-  }
+  if (loading) return <LogoLoader />;
 
   if (error && sessions.length === 0) {
     return (

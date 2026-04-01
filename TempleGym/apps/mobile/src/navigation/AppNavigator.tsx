@@ -4,6 +4,23 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Colors } from '../constants/colors';
 import BottomTabBar from './BottomTabBar';
 import { MainStackParamList } from './types';
+import { useAuthStore } from '../store/auth.store';
+
+const TIERS = [
+  { min: 2801, color: '#FF4500' },
+  { min: 2001, color: '#C084FC' },
+  { min: 1401, color: '#67E8F9' },
+  { min: 901,  color: '#94A3B8' },
+  { min: 501,  color: '#F0C040' },
+  { min: 201,  color: '#CBD5E1' },
+  { min: 1,    color: '#CD7F32' },
+  { min: 0,    color: null },       // Unranked — no tint
+];
+
+function tierTint(pts: number): string | null {
+  const tier = TIERS.find((t) => pts >= t.min) ?? TIERS[TIERS.length - 1];
+  return tier.color ? tier.color + '05' : null; // ~2% opacity
+}
 
 import HomeScreen           from '../screens/home/HomeScreen';
 import WorkoutScreen        from '../screens/workout/WorkoutScreen';
@@ -19,8 +36,12 @@ import ExercisePickerScreen  from '../screens/routine/ExercisePickerScreen';
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
 export default function AppNavigator() {
+  const weeklyPoints = useAuthStore((s) => s.user?.weeklyPoints ?? 0);
+  const tint         = tierTint(weeklyPoints);
+
   return (
     <View style={styles.container}>
+      {tint ? <View style={[StyleSheet.absoluteFill, { backgroundColor: tint, zIndex: 999 }]} pointerEvents="none" /> : null}
       <View style={styles.content}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home"           component={HomeScreen} />

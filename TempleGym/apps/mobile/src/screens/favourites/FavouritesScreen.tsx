@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import LogoLoader from '../../components/LogoLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
@@ -58,13 +59,7 @@ export default function FavouritesScreen() {
     }
   }
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator color={Colors.primary} />
-      </View>
-    );
-  }
+  if (loading) return <LogoLoader />;
 
   if (error && favourites.length === 0) {
     return (

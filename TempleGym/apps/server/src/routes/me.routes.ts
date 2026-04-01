@@ -45,6 +45,16 @@ router.get('/workouts', requireAuth, async (req: Request, res: Response) => {
   return res.json({ sessions, total });
 });
 
+// GET /me/workouts/week-count
+router.get('/workouts/week-count', requireAuth, async (req: Request, res: Response) => {
+  const { getWeekLabel } = await import('../utils/weekLabel');
+  const weekLabel = getWeekLabel();
+  const count = await prisma.workoutSession.count({
+    where: { userId: req.user!.id, weekLabel },
+  });
+  return res.json({ count });
+});
+
 // GET /me/favourites
 router.get('/favourites', requireAuth, async (req: Request, res: Response) => {
   const favs = await prisma.userFavourite.findMany({
