@@ -104,8 +104,8 @@ export default function HomeScreen() {
   const [cardMenuKey, setCardMenuKey]     = useState<string | null>(null);
   const [cardMenuTop, setCardMenuTop]     = useState(0);
 
-  // Hydrate persisted routines on mount
-  useEffect(() => { hydrate(); }, []);
+  // Hydrate persisted routines on mount (scoped to logged-in user)
+  useEffect(() => { if (user?.id) hydrate(user.id); }, [user?.id]);
 
   // Receive saved/updated routine navigated back from AddRoutineScreen
   useEffect(() => {
