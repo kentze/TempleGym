@@ -43,17 +43,55 @@ REST API (custom) The Express backend exposes its own JSON REST API consumed by 
 | `POST` | `/workouts` | Submit a completed workout session
 | `GET` | `/leaderboard/weekly` | Get the top 100 users ranked by weekly volume score
 
-## Tutorial 
-Windows & Iphone:
-1, Install VS Code
-2, Clone the repository (https://github.com/kentze/TempleGym.git)
-3, Open the terminal
-4, cd .\TempleGym
-5, npm install
-6, cd .\apps\mobile
-7, npx expo start (A QR code will be given)
-8, Download TestFlight on your iphone and get a Expo Go beta version 55.0 ()
-9, Open QR code with Expo Go
+## Tutorial
+
+### Run TempleGym on Windows + iPhone
+
+Follow these steps to run the **TempleGym** mobile app locally on **Windows** and test it on an **iPhone** using **Expo Go**.
+
+1. **Install the required software**
+   - Install **Visual Studio Code**: [https://code.visualstudio.com/](https://code.visualstudio.com/)
+   - Install **Node.js** (npm is included): [https://nodejs.org/](https://nodejs.org/)
+   - Install **Git**: [https://git-scm.com/](https://git-scm.com/)
+   - Install **TestFlight** on your iPhone: [https://apps.apple.com/app/testflight/id899247664](https://apps.apple.com/app/testflight/id899247664)
+
+2. **Clone the repository**
+   - Run:
+     `git clone https://github.com/kentze/TempleGym.git`
+
+3. **Open the project in Visual Studio Code**
+
+4. **Open the terminal in VS Code**
+
+5. **Navigate to the project root**
+   - Run:
+     `cd .\TempleGym`
+
+6. **Install project dependencies**
+   - Run:
+     `npm install`
+
+7. **Navigate to the mobile app folder**
+   - Run:
+     `cd .\apps\mobile`
+
+8. **Start the Expo development server**
+   - Run:
+     `npx expo start`
+   - A QR code will appear in the terminal or browser.
+
+9. **Install Expo Go Beta (SDK 55) on your iPhone**
+   - Join the **Expo Go Beta (SDK 55)** using this link:
+     [https://testflight.apple.com/join/GZJxxfUU](https://testflight.apple.com/join/GZJxxfUU)
+
+10. **Launch the app on your iPhone**
+   - Make sure your **computer and iPhone are connected to the same Wi-Fi network**
+   - Open **Expo Go** on your iPhone
+   - Scan the QR code shown by Expo
+   - The **TempleGym** app should launch automatically
+
+> **Note:** If `npm install` or `npx expo start` does not work, make sure **Node.js** was installed correctly and restart VS Code or your terminal.
 
 
-Mac:
+### Run TempleGym on Mac + iPhone
+?
