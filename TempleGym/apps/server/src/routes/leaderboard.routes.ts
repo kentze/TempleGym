@@ -8,9 +8,10 @@ const router = Router();
 // GET /leaderboard/weekly?week=2026-W11
 router.get('/weekly', requireAuth, async (req: Request, res: Response) => {
   const week    = (req.query.week as string) || getWeekLabel();
-  const entries = await getWeeklyLeaderboard(week);
-  const myEntry = entries.find((e) => e.userId === req.user!.id) ?? null;
-  const myRank  = myEntry ? { rank: myEntry.rank, weeklyScore: myEntry.weeklyScore } : null;
+  const allEntries = await getWeeklyLeaderboard(week);
+  const myEntry    = allEntries.find((e) => e.userId === req.user!.id) ?? null;
+  const myRank     = myEntry ? { rank: myEntry.rank, weeklyScore: myEntry.weeklyScore } : null;
+  const entries    = allEntries.slice(0, 20);
 
   return res.json({
     week,

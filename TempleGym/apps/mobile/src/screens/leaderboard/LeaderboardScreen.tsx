@@ -68,16 +68,25 @@ export default function LeaderboardScreen() {
   const myRank    = data.myRank;
   const isVisible = myRank ? data.entries.some((e) => e.userId === user?.id) : false;
 
+  function rankColor(rank: number): string {
+    if (rank === 1) return Colors.gold;
+    if (rank === 2) return Colors.silver;
+    if (rank === 3) return Colors.bronze;
+    if (rank <= 10) return Colors.text;
+    return Colors.textMuted;
+  }
+
   function renderEntry({ item }: { item: LeaderboardEntry }) {
-    const isMe = item.userId === user?.id;
+    const isMe  = item.userId === user?.id;
+    const color = rankColor(item.rank);
     return (
-      <View style={[styles.row, isMe && styles.rowHighlight]}>
-        <Text style={[styles.rank, item.rank <= 3 && styles.rankTop]}>{item.rank}</Text>
+      <View style={[styles.row, isMe && styles.rowHighlight, item.rank <= 3 && { borderColor: color + '60' }]}>
+        <Text style={[styles.rank, { color }]}>{item.rank}</Text>
         <Text style={styles.name} numberOfLines={1}>
-          {item.displayName ?? 'Anonymous'}
+          {item.username}
           {isMe ? ' (you)' : ''}
         </Text>
-        <Text style={styles.score}>{item.weeklyScore} pts</Text>
+        <Text style={[styles.score, { color }]}>{item.weeklyScore} pts</Text>
       </View>
     );
   }
@@ -122,8 +131,7 @@ const styles = StyleSheet.create({
   retryText:    { color: Colors.primary, fontSize: 14 },
   row:          { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 10, borderWidth: 1, borderColor: Colors.border, paddingVertical: 12, paddingHorizontal: 14, gap: 12 },
   rowHighlight: { borderColor: Colors.primary, backgroundColor: Colors.primaryFaded },
-  rank:         { width: 28, fontSize: 14, fontWeight: '700', color: Colors.textMuted, textAlign: 'center' },
-  rankTop:      { color: Colors.gold },
+  rank:         { width: 28, fontSize: 14, fontWeight: '700', textAlign: 'center' },
   name:         { flex: 1, fontSize: 15, color: Colors.text },
   score:        { fontSize: 14, fontWeight: '600', color: Colors.primary },
   stickyFooter: { borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: Colors.primaryFaded, padding: 14, alignItems: 'center' },

@@ -22,14 +22,14 @@ import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
 
 const TIERS = [
-  { name: 'Champion', min: 2801, color: '#FF4500' },
-  { name: 'Master',   min: 2001, color: '#C084FC' },
-  { name: 'Diamond',  min: 1401, color: '#67E8F9' },
-  { name: 'Platinum', min: 901,  color: '#94A3B8' },
-  { name: 'Gold',     min: 501,  color: '#F0C040' },
-  { name: 'Silver',   min: 201,  color: '#CBD5E1' },
-  { name: 'Bronze',   min: 1,    color: '#CD7F32' },
-  { name: 'Unranked', min: 0,    color: '#6B7280' },
+  { name: 'Champion', min: 2801, color: Colors.champion },
+  { name: 'Master',   min: 2001, color: Colors.masters },
+  { name: 'Diamond',  min: 1401, color: Colors.diamond },
+  { name: 'Platinum', min: 901,  color: Colors.platinum },
+  { name: 'Gold',     min: 501,  color: Colors.gold },
+  { name: 'Silver',   min: 201,  color: Colors.silver },
+  { name: 'Bronze',   min: 1,    color: Colors.bronze },
+  { name: 'Unranked', min: 0,    color: Colors.unranked },
 ];
 
 function getTier(pts: number) {

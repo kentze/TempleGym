@@ -19,16 +19,17 @@ model User {
   displayName  String?
   heightCm     Int?
   weightKg     Float?
-  gpsEnabled   Boolean  @default(true)
-  preferMetric Boolean  @default(true)
+  gpsEnabled           Boolean  @default(true)
+  preferMetric         Boolean  @default(true)
+  leaderboardAnonymous Boolean  @default(false)
   totalPoints  Int      @default(0)
   weeklyPoints Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   workoutSessions WorkoutSession[]
-  favourites      UserFavourite[]
 }
+
 
 model OtpRequest {
   id        String    @id @default(cuid())
@@ -48,7 +49,6 @@ model Exercise {
   subCategory  String?
   muscleGroups String[]
   workoutExercises WorkoutExercise[]
-  favouritedBy     UserFavourite[]
 }
 
 model WorkoutSession {
@@ -85,13 +85,3 @@ model WorkoutExercise {
   exercise Exercise       @relation(fields: [exerciseId], references: [id])
 }
 
-model UserFavourite {
-  userId     String
-  exerciseId String
-  createdAt  DateTime @default(now())
-
-  user     User     @relation(fields: [userId], references: [id])
-  exercise Exercise @relation(fields: [exerciseId], references: [id])
-
-  @@id([userId, exerciseId])
-}
