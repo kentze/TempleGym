@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { MotiView } from 'moti';
 import {
   View,
   Text,
@@ -11,6 +10,7 @@ import {
   Modal,
   Pressable,
   Animated,
+  LayoutAnimation,
   Image,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -307,30 +307,20 @@ export default function HomeScreen() {
         <View key={routine.id} style={styles.routineGroup}>
           <TouchableOpacity
             style={styles.routinesHeader}
-            onPress={() => toggleFolder(routine.id)}
+            onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); toggleFolder(routine.id); }}
             activeOpacity={0.75}
           >
-            <MotiView
-              animate={{ rotate: routine.open ? '90deg' : '0deg' }}
-              transition={{ type: 'timing', duration: 200 }}
-            >
+            <View style={{ transform: [{ rotate: routine.open ? '90deg' : '0deg' }] }}>
               <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
-            </MotiView>
+            </View>
             <Text style={styles.routinesTitle}>{routine.name}</Text>
             <TouchableOpacity onPress={(e) => handleBarbellPress(routine.id, e.nativeEvent.pageY)} hitSlop={8}>
-              <MotiView animate={{ scale: glowingId === routine.id ? 1.3 : 1 }} transition={{ type: 'spring', damping: 8 }}>
-                <Ionicons name="barbell-outline" size={20} color={glowingId === routine.id ? Colors.primary : Colors.textMuted} />
-              </MotiView>
+              <Ionicons name="barbell-outline" size={20} color={glowingId === routine.id ? Colors.primary : Colors.textMuted} />
             </TouchableOpacity>
           </TouchableOpacity>
 
           {routine.open && (
-            <MotiView
-              from={{ opacity: 0, translateY: -6 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: 'timing', duration: 200 }}
-              style={styles.routinesDropdown}
-            >
+            <View style={styles.routinesDropdown}>
               {routine.items.map((item, i) => (
                 <View key={i} style={styles.routineCard}>
                   <View style={styles.routineCardHeader}>
@@ -354,7 +344,7 @@ export default function HomeScreen() {
                   </TouchableOpacity>
                 </View>
               ))}
-            </MotiView>
+            </View>
           )}
         </View>
       ))}
@@ -363,30 +353,20 @@ export default function HomeScreen() {
       <View style={styles.routineGroup}>
         <TouchableOpacity
           style={styles.routinesHeader}
-          onPress={() => setDefaultOpen(!_defaultOpen)}
+          onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setDefaultOpen(!_defaultOpen); }}
           activeOpacity={0.75}
         >
-          <MotiView
-            animate={{ rotate: _defaultOpen ? '90deg' : '0deg' }}
-            transition={{ type: 'timing', duration: 200 }}
-          >
+          <View style={{ transform: [{ rotate: _defaultOpen ? '90deg' : '0deg' }] }}>
             <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
-          </MotiView>
+          </View>
           <Text style={styles.routinesTitle}>{defaultRoutineName}</Text>
           <TouchableOpacity onPress={(e) => handleBarbellPress('default', e.nativeEvent.pageY)} hitSlop={8}>
-            <MotiView animate={{ scale: glowingId === 'default' ? 1.3 : 1 }} transition={{ type: 'spring', damping: 8 }}>
-              <Ionicons name="barbell-outline" size={20} color={glowingId === 'default' ? Colors.primary : Colors.textMuted} />
-            </MotiView>
+            <Ionicons name="barbell-outline" size={20} color={glowingId === 'default' ? Colors.primary : Colors.textMuted} />
           </TouchableOpacity>
         </TouchableOpacity>
 
         {_defaultOpen && (
-          <MotiView
-            from={{ opacity: 0, translateY: -6 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: 'timing', duration: 200 }}
-            style={styles.routinesDropdown}
-          >
+          <View style={styles.routinesDropdown}>
             {defaultItems.map((item, i) => (
               <View key={i} style={styles.routineCard}>
                 <View style={styles.routineCardHeader}>
@@ -410,7 +390,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </View>
             ))}
-          </MotiView>
+          </View>
         )}
       </View>
 

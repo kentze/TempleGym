@@ -14,8 +14,6 @@
   "dependencies": {
     "expo": "~55.0.6",
     "expo-image": "~55.0.6",
-    "moti": "^0.30.0",
-    "react-native-reanimated": "~4.2.1",
     "react": "19.2.0",
     "react-native": "0.83.2"
   }
