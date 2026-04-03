@@ -23,8 +23,9 @@ export default function SettingsScreen() {
   const { user, setUser, logout } = useAuthStore();
 
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
-  const [gpsEnabled, setGpsEnabled]   = useState(user?.gpsEnabled ?? true);
-  const [preferMetric, setPreferMetric] = useState(user?.preferMetric ?? true);
+  const [gpsEnabled, setGpsEnabled]               = useState(user?.gpsEnabled ?? true);
+  const [preferMetric, setPreferMetric]             = useState(user?.preferMetric ?? true);
+  const [leaderboardAnonymous, setLeaderboardAnonymous] = useState(user?.leaderboardAnonymous ?? false);
 
   // Display values — stored in metric, shown in user's preferred unit
   const [heightDisplay, setHeightDisplay] = useState(() => {
@@ -64,6 +65,7 @@ export default function SettingsScreen() {
     const body: UpdateProfileBody = {
       gpsEnabled,
       preferMetric,
+      leaderboardAnonymous,
     };
     if (displayName.trim()) {
       if (displayName.trim().length < 2) {
@@ -188,6 +190,19 @@ export default function SettingsScreen() {
           <Switch
             value={preferMetric}
             onValueChange={handleUnitToggle}
+            trackColor={{ true: Colors.primary }}
+            thumbColor={Colors.text}
+          />
+        </View>
+
+        <View style={styles.toggle}>
+          <View>
+            <Text style={styles.toggleLabel}>Anonymous on leaderboard</Text>
+            <Text style={styles.toggleSub}>Show "Anonymous" instead of your Temple ID</Text>
+          </View>
+          <Switch
+            value={leaderboardAnonymous}
+            onValueChange={setLeaderboardAnonymous}
             trackColor={{ true: Colors.primary }}
             thumbColor={Colors.text}
           />

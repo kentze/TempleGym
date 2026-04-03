@@ -1,7 +1,7 @@
 export interface LeaderboardEntry {
   rank: number;
   userId: string;
-  displayName: string | null;
+  username: string;
   weeklyScore: number;
 }
 

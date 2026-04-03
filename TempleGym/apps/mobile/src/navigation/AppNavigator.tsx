@@ -7,13 +7,13 @@ import { MainStackParamList } from './types';
 import { useAuthStore } from '../store/auth.store';
 
 const TIERS = [
-  { min: 2801, color: '#FF4500' },
-  { min: 2001, color: '#C084FC' },
-  { min: 1401, color: '#67E8F9' },
-  { min: 901,  color: '#94A3B8' },
-  { min: 501,  color: '#F0C040' },
-  { min: 201,  color: '#CBD5E1' },
-  { min: 1,    color: '#CD7F32' },
+  { min: 2801, color: Colors.champion },
+  { min: 2001, color: Colors.masters },
+  { min: 1401, color: Colors.diamond },
+  { min: 901,  color: Colors.platinum },
+  { min: 501,  color: Colors.gold },
+  { min: 201,  color: Colors.silver },
+  { min: 1,    color: Colors.bronze },
   { min: 0,    color: null },       // Unranked — no tint
 ];
 
@@ -28,7 +28,7 @@ import SessionLoggingScreen from '../screens/workout/SessionLoggingScreen';
 import HistoryScreen        from '../screens/history/HistoryScreen';
 import SessionDetailScreen  from '../screens/history/SessionDetailScreen';
 import LeaderboardScreen    from '../screens/leaderboard/LeaderboardScreen';
-import FavouritesScreen     from '../screens/favourites/FavouritesScreen';
+import StatsScreen          from '../screens/stats/StatsScreen';
 import SettingsScreen       from '../screens/settings/SettingsScreen';
 import AddRoutineScreen      from '../screens/routine/AddRoutineScreen';
 import ExercisePickerScreen  from '../screens/routine/ExercisePickerScreen';
@@ -50,7 +50,7 @@ export default function AppNavigator() {
           <Stack.Screen name="History"        component={HistoryScreen} />
           <Stack.Screen name="SessionDetail"  component={SessionDetailScreen} />
           <Stack.Screen name="Leaderboard"    component={LeaderboardScreen} />
-          <Stack.Screen name="Favourites"     component={FavouritesScreen} />
+          <Stack.Screen name="Stats"           component={StatsScreen} />
           <Stack.Screen name="Settings"       component={SettingsScreen} />
           <Stack.Screen name="AddRoutine"      component={AddRoutineScreen} />
           <Stack.Screen name="ExercisePicker" component={ExercisePickerScreen} />

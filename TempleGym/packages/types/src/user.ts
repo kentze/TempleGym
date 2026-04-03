@@ -6,6 +6,7 @@ export interface UserProfile {
   weightKg: number | null;
   gpsEnabled: boolean;
   preferMetric: boolean;
+  leaderboardAnonymous: boolean;
   totalPoints: number;
   weeklyPoints: number;
   createdAt: string;
@@ -17,4 +18,5 @@ export interface UpdateProfileBody {
   weightKg?: number;
   gpsEnabled?: boolean;
   preferMetric?: boolean;
+  leaderboardAnonymous?: boolean;
 }

@@ -11,7 +11,7 @@ const TABS: { key: string; label: string; iconOff: IoniconName; iconOn: IoniconN
   { key: 'Home',        label: 'Home',    iconOff: 'home-outline',    iconOn: 'home' },
   { key: 'History',     label: 'History', iconOff: 'time-outline',    iconOn: 'time' },
   { key: 'Leaderboard', label: 'Board',   iconOff: 'trophy-outline',  iconOn: 'trophy' },
-  { key: 'Favourites',  label: 'Fav',     iconOff: 'heart-outline',   iconOn: 'heart' },
+  { key: 'Stats',       label: 'Stats',   iconOff: 'bar-chart-outline', iconOn: 'bar-chart' },
 ];
 
 const HIDDEN_ON = ['SessionLogging', 'SessionDetail', 'Workout', 'AddRoutine', 'ExercisePicker'];

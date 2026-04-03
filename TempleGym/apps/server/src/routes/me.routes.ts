@@ -9,8 +9,9 @@ const updateProfileSchema = z.object({
   displayName:  z.string().min(2).max(30).optional(),
   heightCm:     z.number().int().min(100).max(250).optional(),
   weightKg:     z.number().min(20).max(300).optional(),
-  gpsEnabled:   z.boolean().optional(),
-  preferMetric: z.boolean().optional(),
+  gpsEnabled:           z.boolean().optional(),
+  preferMetric:         z.boolean().optional(),
+  leaderboardAnonymous: z.boolean().optional(),
 });
 
 // GET /me
@@ -55,31 +56,32 @@ router.get('/workouts/week-count', requireAuth, async (req: Request, res: Respon
   return res.json({ count });
 });
 
-// GET /me/favourites
-router.get('/favourites', requireAuth, async (req: Request, res: Response) => {
-  const favs = await prisma.userFavourite.findMany({
-    where:   { userId: req.user!.id },
-    include: { exercise: true },
+// GET /me/stats — best set per exercise across all time
+router.get('/stats', requireAuth, async (req: Request, res: Response) => {
+  const rows = await prisma.workoutExercise.findMany({
+    where:   { session: { userId: req.user!.id } },
+    include: { exercise: true, session: { select: { startedAt: true } } },
   });
-  return res.json(favs.map((f: { exercise: unknown }) => f.exercise));
+
+  const best = new Map<string, { exercise: unknown; bestWeightKg: number; bestReps: number; achievedAt: Date }>();
+
+  for (const row of rows) {
+    const sets = row.sets as { setNumber: number; weightKg: number; reps: number }[];
+    for (const s of sets) {
+      const existing = best.get(row.exerciseId);
+      if (!existing || s.weightKg > existing.bestWeightKg) {
+        best.set(row.exerciseId, {
+          exercise:     row.exercise,
+          bestWeightKg: s.weightKg,
+          bestReps:     s.reps,
+          achievedAt:   row.session.startedAt,
+        });
+      }
+    }
+  }
+
+  return res.json(Array.from(best.values()));
 });
 
-// POST /me/favourites/:exerciseId
-router.post('/favourites/:exerciseId', requireAuth, async (req: Request, res: Response) => {
-  await prisma.userFavourite.upsert({
-    where:  { userId_exerciseId: { userId: req.user!.id, exerciseId: req.params.exerciseId } },
-    update: {},
-    create: { userId: req.user!.id, exerciseId: req.params.exerciseId },
-  });
-  return res.status(204).send();
-});
-
-// DELETE /me/favourites/:exerciseId
-router.delete('/favourites/:exerciseId', requireAuth, async (req: Request, res: Response) => {
-  await prisma.userFavourite.deleteMany({
-    where: { userId: req.user!.id, exerciseId: req.params.exerciseId },
-  });
-  return res.status(204).send();
-});
 
 export default router;
