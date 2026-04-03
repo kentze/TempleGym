@@ -33,6 +33,15 @@ async function main() {
     });
   }
 
+  // Remove any exercises no longer in the list (that have no workout history)
+  const names = exercises.map((e) => e.name);
+  await prisma.exercise.deleteMany({
+    where: {
+      name:            { notIn: names },
+      workoutExercises: { none: {} },
+    },
+  });
+
   console.log('Done.');
 }
 

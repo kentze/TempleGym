@@ -88,11 +88,7 @@ export default function ExercisePickerScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.slider}
-          snapToInterval={220}
-          decelerationRate="fast"
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
@@ -131,8 +127,6 @@ export default function ExercisePickerScreen() {
   );
 }
 
-const CARD_WIDTH = 200;
-
 const styles = StyleSheet.create({
   container:       { flex: 1, backgroundColor: Colors.background },
   header:          { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: Colors.border },
@@ -147,9 +141,9 @@ const styles = StyleSheet.create({
   subtitle:        { fontSize: 12, color: Colors.textMuted, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
   loader:          { marginTop: 60 },
   slider:          { paddingHorizontal: 20, paddingBottom: 24, gap: 12 },
-  card:            { width: CARD_WIDTH, backgroundColor: Colors.surface, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
+  card:            { backgroundColor: Colors.surface, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
   cardAccent:      { height: 4, backgroundColor: Colors.primary },
-  cardBody:        { padding: 16, gap: 6, flex: 1 },
+  cardBody:        { padding: 16, gap: 6 },
   cardCategory:    { fontSize: 10, fontWeight: '700', color: Colors.primary, letterSpacing: 1, textTransform: 'uppercase' },
   cardName:        { fontSize: 17, fontWeight: '700', color: Colors.text, lineHeight: 22 },
   cardSub:         { fontSize: 12, color: Colors.textMuted },

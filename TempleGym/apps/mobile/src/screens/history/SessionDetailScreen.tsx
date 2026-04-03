@@ -57,9 +57,9 @@ export default function SessionDetailScreen() {
           </View>
         </View>
 
-        {session.exercises.map((ex: { id: string; exerciseId: string; sets: unknown }) => (
+        {session.exercises.map((ex: { id: string; exerciseId: string; exercise?: { name: string }; sets: unknown }) => (
           <View key={ex.id} style={styles.exerciseCard}>
-            <Text style={styles.exerciseName}>{ex.exerciseId}</Text>
+            <Text style={styles.exerciseName}>{ex.exercise?.name ?? ex.exerciseId}</Text>
             {(ex.sets as { setNumber: number; weightKg: number; reps: number }[]).map((s) => {
               const displayWeight = preferMetric
                 ? `${s.weightKg}kg`

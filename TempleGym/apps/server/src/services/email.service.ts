@@ -11,7 +11,7 @@ export async function sendOtpEmail(to: string, code: string): Promise<void> {
       from: config.SMTP_FROM,
       to,
       subject: 'Your TempleGym login code',
-      text: `
+      html: `
         <div style="font-family:sans-serif;max-width:400px;">
           <h2>TempleGym</h2>
           <p>Your one-time login code:</p>
