@@ -42,3 +42,18 @@ REST API (custom) The Express backend exposes its own JSON REST API consumed by 
 | `PATCH` | `/me/profile` | Update display name, height, and weight
 | `POST` | `/workouts` | Submit a completed workout session
 | `GET` | `/leaderboard/weekly` | Get the top 100 users ranked by weekly volume score
+
+## Tutorial 
+Windows & Iphone:
+1, Install VS Code
+2, Clone the repository (https://github.com/kentze/TempleGym.git)
+3, Open the terminal
+4, cd .\TempleGym
+5, npm install
+6, cd .\apps\mobile
+7, npx expo start (A QR code will be given)
+8, Download TestFlight on your iphone and get a Expo Go beta version 55.0 ()
+9, Open QR code with Expo Go
+
+
+Mac:
