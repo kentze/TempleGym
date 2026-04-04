@@ -66,6 +66,7 @@ const SESSION_INFO: Record<
   PULL: { label: "Pull", description: "Back, biceps and rear delts" },
   LEGS: { label: "Legs", description: "Quads, hamstrings, glutes and calves" },
   CARDIO: { label: "Cardio", description: "Running, cycling, rowing, etc." },
+  CORE: { label: "Core", description: "Abs, obliques and lower back" },
   FULL_BODY: {
     label: "Full Body",
     description: "A mix of upper and lower body exercises",
@@ -88,6 +89,11 @@ const SESSION_CARDS: {
     type: "CARDIO",
     label: "Cardio",
     description: "Running, cycling, rowing, etc.",
+  },
+  {
+    type: "CORE",
+    label: "Core",
+    description: "Abs, obliques and lower back",
   },
   {
     type: "FULL_BODY",
