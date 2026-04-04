@@ -69,7 +69,7 @@ const SESSION_INFO: Record<
   CORE: { label: "Core", description: "Abs, obliques and lower back" },
   FULL_BODY: {
     label: "Full Body",
-    description: "A mix of upper and lower body exercises",
+    description: "A mix of exercises",
   },
 };
 
@@ -98,7 +98,7 @@ const SESSION_CARDS: {
   {
     type: "FULL_BODY",
     label: "Full Body",
-    description: "A mix of upper and lower body exercises",
+    description: "A mix of exercises",
   },
 ];
 
@@ -108,8 +108,24 @@ function suggestedSession(lastType: SessionType | null): SessionType {
 }
 
 function detectType(exs: { category: SessionType }[]): SessionType {
-  const push = exs.filter((e) => e.category === "PUSH").length;
-  return push >= exs.length / 2 ? "PUSH" : "PULL";
+  const counts = exs.reduce<Record<SessionType, number>>(
+    (acc, ex) => {
+      acc[ex.category] = (acc[ex.category] ?? 0) + 1;
+      return acc;
+    },
+    {
+      PUSH: 0,
+      PULL: 0,
+      LEGS: 0,
+      CARDIO: 0,
+      CORE: 0,
+      FULL_BODY: 0,
+    },
+  );
+
+  return (Object.entries(counts) as [SessionType, number][]).sort(
+    (a, b) => b[1] - a[1],
+  )[0][0];
 }
 
 export default function HomeScreen() {

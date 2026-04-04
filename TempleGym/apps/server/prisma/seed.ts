@@ -4,6 +4,10 @@ const prisma = new PrismaClient();
 
 const PUSH = "PUSH" as const;
 const PULL = "PULL" as const;
+const LEGS = "LEGS" as const;
+const CARDIO = "CARDIO" as const;
+const CORE = "CORE" as const;
+const FULL_BODY = "FULL_BODY" as const;
 
 async function main() {
   console.log("Seeding exercises...");
@@ -129,61 +133,61 @@ async function main() {
     //LEGS
     {
       name: "Squat",
-      category: "LEGS",
+      category: LEGS,
       subCategory: null,
       muscleGroups: ["Quads", "Glutes", "Hamstrings"],
     },
     {
       name: "Deadlift",
-      category: "LEGS",
+      category: LEGS,
       subCategory: null,
       muscleGroups: ["Hamstrings", "Glutes", "Lower Back"],
     },
     {
       name: "Leg Press",
-      category: "LEGS",
+      category: LEGS,
       subCategory: null,
       muscleGroups: ["Quads", "Glutes"],
     },
     {
       name: "Lunges",
-      category: "LEGS",
+      category: LEGS,
       subCategory: null,
       muscleGroups: ["Quads", "Glutes", "Hamstrings"],
     },
     {
       name: "Leg Curl",
-      category: "LEGS",
+      category: LEGS,
       subCategory: null,
       muscleGroups: ["Hamstrings"],
     },
     {
       name: "Calf Raise",
-      category: "LEGS",
+      category: LEGS,
       subCategory: null,
       muscleGroups: ["Calves"],
     },
     {
       name: "Hip Thrust",
-      category: "LEGS",
+      category: LEGS,
       subCategory: null,
       muscleGroups: ["Glutes"],
     },
     {
       name: "Bulgarian Split Squat",
-      category: "LEGS",
+      category: LEGS,
       subCategory: null,
       muscleGroups: ["Quads", "Glutes", "Hamstrings"],
     },
     {
       name: "Hip Abduction",
-      category: "LEGS",
+      category: LEGS,
       subCategory: null,
       muscleGroups: ["Glute Medius"],
     },
     {
       name: "Hip Adduction",
-      category: "LEGS",
+      category: LEGS,
       subCategory: null,
       muscleGroups: ["Adductors"],
     },
@@ -191,55 +195,55 @@ async function main() {
     //CARDIO
     {
       name: "Running",
-      category: "CARDIO",
+      category: CARDIO,
       subCategory: null,
       muscleGroups: ["Cardio"],
     },
     {
       name: "Cycling",
-      category: "CARDIO",
+      category: CARDIO,
       subCategory: null,
       muscleGroups: ["Cardio"],
     },
     {
       name: "Stair Climber",
-      category: "CARDIO",
+      category: CARDIO,
       subCategory: null,
       muscleGroups: ["Cardio"],
     },
     {
       name: "Rowing Machine",
-      category: "CARDIO",
+      category: CARDIO,
       subCategory: null,
       muscleGroups: ["Cardio"],
     },
     {
       name: "Jump Rope",
-      category: "CARDIO",
+      category: CARDIO,
       subCategory: null,
       muscleGroups: ["Cardio"],
     },
     {
       name: "Elliptical",
-      category: "CARDIO",
+      category: CARDIO,
       subCategory: null,
       muscleGroups: ["Cardio"],
     },
     {
       name: "Swimming",
-      category: "CARDIO",
+      category: CARDIO,
       subCategory: null,
       muscleGroups: ["Cardio"],
     },
     {
       name: "High Knees",
-      category: "CARDIO",
+      category: CARDIO,
       subCategory: null,
       muscleGroups: ["Cardio"],
     },
     {
       name: "Burpees",
-      category: "CARDIO",
+      category: CARDIO,
       subCategory: null,
       muscleGroups: ["Cardio", "Full Body"],
     },
@@ -247,61 +251,61 @@ async function main() {
     //CORE
     {
       name: "Plank",
-      category: "CORE",
+      category: CORE,
       subCategory: null,
       muscleGroups: ["Core"],
     },
     {
       name: "Russian Twist",
-      category: "CORE",
+      category: CORE,
       subCategory: null,
       muscleGroups: ["Core"],
     },
     {
       name: "Leg Raises",
-      category: "CORE",
+      category: CORE,
       subCategory: null,
       muscleGroups: ["Core"],
     },
     {
       name: "Bicycle Crunches",
-      category: "CORE",
+      category: CORE,
       subCategory: null,
       muscleGroups: ["Core"],
     },
     {
       name: "Mountain Climbers",
-      category: "CORE",
+      category: CORE,
       subCategory: null,
       muscleGroups: ["Core", "Cardio"],
     },
     {
       name: "Woodchoppers",
-      category: "CORE",
+      category: CORE,
       subCategory: null,
       muscleGroups: ["Core"],
     },
     {
       name: "Crunches",
-      category: "CORE",
+      category: CORE,
       subCategory: null,
       muscleGroups: ["Core"],
     },
     {
       name: "Hanging Leg Raises",
-      category: "CORE",
+      category: CORE,
       subCategory: null,
       muscleGroups: ["Core"],
     },
     {
       name: "Ab Wheel Rollout",
-      category: "CORE",
+      category: CORE,
       subCategory: null,
       muscleGroups: ["Core"],
     },
     {
       name: "Hollow Body Hold",
-      category: "CORE",
+      category: CORE,
       subCategory: null,
       muscleGroups: ["Core"],
     },
