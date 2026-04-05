@@ -108,24 +108,8 @@ function suggestedSession(lastType: SessionType | null): SessionType {
 }
 
 function detectType(exs: { category: SessionType }[]): SessionType {
-  const counts = exs.reduce<Record<SessionType, number>>(
-    (acc, ex) => {
-      acc[ex.category] = (acc[ex.category] ?? 0) + 1;
-      return acc;
-    },
-    {
-      PUSH: 0,
-      PULL: 0,
-      LEGS: 0,
-      CARDIO: 0,
-      CORE: 0,
-      FULL_BODY: 0,
-    },
-  );
-
-  return (Object.entries(counts) as [SessionType, number][]).sort(
-    (a, b) => b[1] - a[1],
-  )[0][0];
+  const push = exs.filter((e) => e.category === "PUSH").length;
+  return push >= exs.length / 2 ? "PUSH" : "PULL";
 }
 
 export default function HomeScreen() {
