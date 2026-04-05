@@ -28,6 +28,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   workoutSessions WorkoutSession[]
+  weeklyGoal Int @default(3)
 }
 
 

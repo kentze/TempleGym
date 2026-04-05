@@ -277,6 +277,17 @@ export default function HomeScreen() {
     day: "numeric",
   });
 
+  const streakBg = (weeks: number) => {
+    if (weeks >= 12) return "#2a2a00";
+    if (weeks >= 6) return "#0f2e1a";
+    if (weeks >= 3) return "#0d1f2e";
+    return "#1a1a1a";
+  };
+
+  const streakOuterBg = (days: number, goal: number) => {
+    return days >= goal ? "#102a10" : "#2a1010"; // green if goal hit, red if not
+  };
+
   const todayType = suggestedSession(lastWorkout?.type ?? null);
   const todaySession = SESSION_INFO[todayType];
 
@@ -377,6 +388,54 @@ export default function HomeScreen() {
               ]}
             >
               {getTier(user?.weeklyPoints ?? 0).name}
+            </Text>
+          </View>
+        </View>
+
+        {/*streak*/}
+        <View
+          style={[
+            styles.statsRow,
+            (user?.weeklyPoints ?? 0) > 0 && {
+              backgroundColor: streakOuterBg(
+                user!.daysThisWeek,
+                user!.weeklyGoal ?? 3,
+              ),
+            },
+          ]}
+        >
+          <View style={[styles.statCard, { borderRadius: 10, padding: 8 }]}>
+            <Text style={styles.statValue}>{user?.daysThisWeek ?? 0}</Text>
+            <Text style={styles.statLabel}>Days this week</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View
+            style={[
+              styles.statCard,
+              {
+                backgroundColor: streakBg(user?.weekStreak ?? 0),
+                borderRadius: 10,
+                padding: 8,
+                margin: 7,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.statValue,
+                { color: getTier(user?.weekStreak ?? 0).color },
+              ]}
+            >
+              {user?.weekStreak ?? 0}
+            </Text>
+            <Text style={styles.statLabel}>Weeks Streak</Text>
+            <Text
+              style={[
+                styles.statTier,
+                { color: getTier(user?.weekStreak ?? 0).color },
+              ]}
+            >
+              {getTier(user?.weekStreak ?? 0).name}
             </Text>
           </View>
         </View>
