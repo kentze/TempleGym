@@ -10,12 +10,16 @@ export interface UserProfile {
   totalPoints: number;
   weeklyPoints: number;
   createdAt: string;
+  daysThisWeek: number;
+  weekStreak: number;
+  weeklyGoal: number;
 }
 
 export interface UpdateProfileBody {
   displayName?: string;
   heightCm?: number;
   weightKg?: number;
+  weeklyGoal?: number;
   gpsEnabled?: boolean;
   preferMetric?: boolean;
   leaderboardAnonymous?: boolean;

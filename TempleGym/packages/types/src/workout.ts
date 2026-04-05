@@ -1,4 +1,10 @@
-export type SessionType = "PUSH" | "PULL" | "LEGS" | "CARDIO" | "FULL_BODY";
+export type SessionType =
+  | "PUSH"
+  | "PULL"
+  | "LEGS"
+  | "CARDIO"
+  | "CORE"
+  | "FULL_BODY";
 
 export interface SetEntry {
   setNumber: number;
