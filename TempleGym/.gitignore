@@ -12,6 +12,9 @@ build/
 # Prisma generated client
 apps/server/node_modules/.prisma/
 
+# Test coverage
+apps/server/coverage/
+
 # Logs
 *.log
 npm-debug.log*
