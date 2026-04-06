@@ -101,9 +101,9 @@ export default function LoginScreen() {
   }, []);
 
   // Float label slide
-  const floatLabelY = useRef(new Animated.Value(11)).current;
+  const floatLabelY = useRef(new Animated.Value(13)).current;
   useEffect(() => {
-    Animated.timing(floatLabelY, { toValue: isFloated ? 0 : 11, duration: 180, useNativeDriver: true }).start();
+    Animated.timing(floatLabelY, { toValue: isFloated ? 0 : 13, duration: 180, useNativeDriver: true }).start();
   }, [isFloated]);
 
   function handlePrefixChange(raw: string) {
@@ -273,12 +273,12 @@ const styles = StyleSheet.create({
   slogan:          { fontSize: 13, color: Colors.textMuted, textAlign: 'center', marginTop: 4 },
   subtitleWrapper: { marginTop: 40 },
   subtitle:        { fontSize: 14, color: Colors.textMuted, textAlign: 'center' },
-  emailRow:          { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: Colors.border, borderRadius: 10, backgroundColor: Colors.surface, overflow: 'hidden', height: 48 },
+  emailRow:          { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: Colors.border, borderRadius: 10, backgroundColor: Colors.surface, overflow: 'hidden', height: 56 },
   prefixContainer:   { flex: 1, position: 'relative', height: '100%' },
-  floatLabelWrap:    { position: 'absolute', top: 4, left: 16 },
+  floatLabelWrap:    { position: 'absolute', top: 6, left: 16 },
   floatLabel:        { color: Colors.textMuted, fontSize: 16 },
   floatLabelSmall:   { fontSize: 11 },
-  prefixInput:       { position: 'absolute', top: 18, left: 0, right: 0, bottom: 0, paddingHorizontal: 16, fontSize: 16 },
+  prefixInput:       { position: 'absolute', top: 24, left: 0, right: 0, bottom: 0, paddingHorizontal: 16, fontSize: 16 },
   suffixBox:         { paddingHorizontal: 12, borderLeftWidth: 1, borderLeftColor: Colors.border, height: '100%', justifyContent: 'center' },
   suffixText:        { color: Colors.textMuted, fontSize: 16 },
   input:           { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, color: Colors.text, fontSize: 16, letterSpacing: 0 },
