@@ -84,17 +84,17 @@ const [exercises, setExercises] = useState<Exercise[]>([]);
         ))}
       </ScrollView>
 
-      {/* Subtitle */}
-      <Text style={styles.subtitle}>
-        {CATEGORIES.find((c) => c.key === activeTab)?.subtitle}
-      </Text>
-
       {/* Exercise list */}
       <FlatList
         style={{ flex: 1 }}
         data={filtered}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.slider}
+        ListHeaderComponent={
+          <Text style={styles.subtitle}>
+            {CATEGORIES.find((c) => c.key === activeTab)?.subtitle}
+          </Text>
+        }
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
