@@ -65,24 +65,25 @@ const [exercises, setExercises] = useState<Exercise[]>([]);
       </View>
 
       {/* Category tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.tabsScroll}
-        contentContainerStyle={styles.tabs}
-      >
-        {CATEGORIES.map((cat) => (
-          <TouchableOpacity
-            key={cat.key}
-            style={[styles.tab, activeTab === cat.key && styles.tabActive]}
-            onPress={() => setActiveTab(cat.key)}
-          >
-            <Text style={[styles.tabText, activeTab === cat.key && styles.tabTextActive]}>
-              {cat.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={styles.tabsWrap}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabs}
+        >
+          {CATEGORIES.map((cat) => (
+            <TouchableOpacity
+              key={cat.key}
+              style={[styles.tab, activeTab === cat.key && styles.tabActive]}
+              onPress={() => setActiveTab(cat.key)}
+            >
+              <Text style={[styles.tabText, activeTab === cat.key && styles.tabTextActive]}>
+                {cat.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* Exercise list */}
       <FlatList
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
   backBtn:         { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   headerTitle:     { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: Colors.text },
   headerSpacer:    { width: 36 },
-  tabsScroll:      { height: 58 },
+  tabsWrap:        { height: 58, overflow: 'hidden' },
   tabs:            { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4, alignItems: 'flex-start' },
   tab:             { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center' },
   tabActive:       { backgroundColor: Colors.primary, borderColor: Colors.primary },
