@@ -3,6 +3,7 @@ import type { Exercise, SessionType, SetEntry } from '@templegym/types';
 import { api } from '../services/api';
 
 interface ActiveExercise {
+  slotKey:    string; // unique per slot — exerciseId:orderIndex
   exerciseId: string;
   name:       string;
   orderIndex: number;
@@ -19,9 +20,9 @@ interface ActiveSession {
 interface WorkoutState {
   activeSession: ActiveSession | null;
   isSubmitting:  boolean;
-  startSession:  (type: SessionType) => void;
+  startSession:  (type: SessionType, exercises?: Exercise[]) => void;
   addExercise:   (exercise: Exercise) => void;
-  addSet:        (exerciseId: string, set: Omit<SetEntry, 'setNumber'>) => void;
+  addSet:        (slotKey: string, set: Omit<SetEntry, 'setNumber'>) => void;
   endSession:    (gpsLat?: number, gpsLng?: number) => Promise<void>;
   clearSession:  () => void;
 }
@@ -30,19 +31,34 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
   activeSession: null,
   isSubmitting:  false,
 
-  startSession: (type) => set({ activeSession: { type, startedAt: new Date(), exercises: [] } }),
+  startSession: (type, exercises?) => set({
+    activeSession: {
+      type,
+      startedAt: new Date(),
+      exercises: (exercises ?? []).map((ex, i) => ({
+        slotKey:    `${ex.id}:${i}`,
+        exerciseId: ex.id,
+        name:       ex.name,
+        orderIndex: i,
+        startedAt:  new Date(),
+        sets:       [],
+      })),
+    },
+  }),
 
   addExercise: (exercise) => {
     const session = get().activeSession;
     if (!session) return;
     if (session.exercises.some((e) => e.exerciseId === exercise.id)) return;
+    const orderIndex = session.exercises.length;
     set({
       activeSession: {
         ...session,
         exercises: [...session.exercises, {
+          slotKey:    `${exercise.id}:${orderIndex}`,
           exerciseId: exercise.id,
           name:       exercise.name,
-          orderIndex: session.exercises.length,
+          orderIndex,
           startedAt:  new Date(),
           sets:       [],
         }],
@@ -50,14 +66,14 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     });
   },
 
-  addSet: (exerciseId, set_) => {
+  addSet: (slotKey, set_) => {
     const session = get().activeSession;
     if (!session) return;
     set({
       activeSession: {
         ...session,
         exercises: session.exercises.map((ex) =>
-          ex.exerciseId !== exerciseId ? ex
+          ex.slotKey !== slotKey ? ex
             : { ...ex, sets: [...ex.sets, { setNumber: ex.sets.length + 1, ...set_ }] }
         ),
       },

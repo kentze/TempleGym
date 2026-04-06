@@ -168,17 +168,9 @@ export default function AddRoutineScreen() {
     return prCacheRef.current.get(index)!;
   }
 
-  useEffect(() => {
-    if (params?.selectedExercise) {
-      setExercises(prev => [...prev, params.selectedExercise!]);
-      navigation.setParams({ selectedExercise: undefined });
-    }
-  }, [params?.selectedExercise]);
-
   function handleAddExercise() {
     navigation.navigate('ExercisePicker', {
-      folderId:   params.folderId,
-      folderName: params.folderName,
+      onSelect: (exercise) => setExercises(prev => [...prev, exercise]),
     });
   }
 

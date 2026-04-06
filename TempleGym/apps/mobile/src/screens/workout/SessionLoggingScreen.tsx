@@ -53,7 +53,7 @@ export default function SessionLoggingScreen() {
 
   useEffect(() => {
     if (!activeSession) {
-      navigation.replace('Home');
+      navigation.goBack();
       return;
     }
     const start   = activeSession.startedAt.getTime();
@@ -88,15 +88,15 @@ export default function SessionLoggingScreen() {
     setPickerVisible(false);
   }
 
-  function updateSetInput(exerciseId: string, field: keyof SetInputs, value: string) {
+  function updateSetInput(slotKey: string, field: keyof SetInputs, value: string) {
     setSetInputs((prev) => ({
       ...prev,
-      [exerciseId]: { ...prev[exerciseId], [field]: value },
+      [slotKey]: { ...prev[slotKey], [field]: value },
     }));
   }
 
-  function handleAddSet(exerciseId: string) {
-    const inputs = setInputs[exerciseId];
+  function handleAddSet(slotKey: string) {
+    const inputs = setInputs[slotKey];
     const weight = parseFloat(inputs?.weightKg ?? '');
     const reps   = parseInt(inputs?.reps ?? '', 10);
     if (isNaN(weight) || weight < 0 || isNaN(reps) || reps < 1) {
@@ -114,8 +114,8 @@ export default function SessionLoggingScreen() {
     }
     setError(null);
     const weightKg = preferMetric ? weight : weight / 2.20462;
-    addSet(exerciseId, { weightKg, reps });
-    setSetInputs((prev) => ({ ...prev, [exerciseId]: { weightKg: '', reps: '' } }));
+    addSet(slotKey, { weightKg, reps });
+    setSetInputs((prev) => ({ ...prev, [slotKey]: { weightKg: '', reps: '' } }));
   }
 
   async function handleEndSession() {
@@ -132,7 +132,7 @@ export default function SessionLoggingScreen() {
     }
     try {
       await endSession(lat, lng);
-      navigation.replace('Home');
+      navigation.goBack();
     } catch {
       setError('Failed to save session. Try again.');
     }
@@ -141,7 +141,7 @@ export default function SessionLoggingScreen() {
   function handleDiscard() {
     Alert.alert('Discard session', 'Are you sure you want to discard this session?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Discard', style: 'destructive', onPress: () => { clearSession(); navigation.replace('Home'); } },
+      { text: 'Discard', style: 'destructive', onPress: () => { clearSession(); navigation.goBack(); } },
     ]);
   }
 
@@ -166,7 +166,7 @@ export default function SessionLoggingScreen() {
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {activeSession.exercises.map((ex) => (
-          <View key={ex.exerciseId} style={styles.exerciseCard}>
+          <View key={ex.slotKey} style={styles.exerciseCard}>
             <Text style={styles.exerciseName}>{ex.name}</Text>
 
             {ex.sets.map((s) => {
@@ -186,20 +186,20 @@ export default function SessionLoggingScreen() {
                 placeholder={preferMetric ? 'kg' : 'lbs'}
                 placeholderTextColor={Colors.textMuted}
                 keyboardType="decimal-pad"
-                value={setInputs[ex.exerciseId]?.weightKg ?? ''}
-                onChangeText={(v) => updateSetInput(ex.exerciseId, 'weightKg', v)}
+                value={setInputs[ex.slotKey]?.weightKg ?? ''}
+                onChangeText={(v) => updateSetInput(ex.slotKey, 'weightKg', v)}
               />
               <TextInput
                 style={styles.setInput}
                 placeholder="reps"
                 placeholderTextColor={Colors.textMuted}
                 keyboardType="number-pad"
-                value={setInputs[ex.exerciseId]?.reps ?? ''}
-                onChangeText={(v) => updateSetInput(ex.exerciseId, 'reps', v)}
+                value={setInputs[ex.slotKey]?.reps ?? ''}
+                onChangeText={(v) => updateSetInput(ex.slotKey, 'reps', v)}
               />
               <TouchableOpacity
                 style={styles.addSetButton}
-                onPress={() => handleAddSet(ex.exerciseId)}
+                onPress={() => handleAddSet(ex.slotKey)}
               >
                 <Text style={styles.addSetButtonText}>+ Set</Text>
               </TouchableOpacity>
@@ -212,7 +212,7 @@ export default function SessionLoggingScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           style={[styles.endButton, isSubmitting && styles.endButtonDisabled]}
           onPress={handleEndSession}
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   addSetButtonText:   { color: Colors.primary, fontSize: 14, fontWeight: '600' },
   addExerciseButton:  { borderWidth: 1, borderColor: Colors.border, borderRadius: 12, borderStyle: 'dashed', paddingVertical: 14, alignItems: 'center' },
   addExerciseText:    { color: Colors.textMuted, fontSize: 15 },
-  footer:             { padding: 16, borderTopWidth: 1, borderTopColor: Colors.border },
+  footer:             { padding: 16, paddingBottom: 0, borderTopWidth: 1, borderTopColor: Colors.border },
   endButton:          { backgroundColor: Colors.primary, borderRadius: 12, paddingVertical: 16, alignItems: 'center' },
   endButtonDisabled:  { opacity: 0.6 },
   endButtonText:      { color: Colors.text, fontSize: 16, fontWeight: '700' },

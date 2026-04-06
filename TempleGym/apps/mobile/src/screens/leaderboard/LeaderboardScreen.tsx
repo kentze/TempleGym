@@ -8,6 +8,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import LogoLoader from '../../components/LogoLoader';
+import LogoRefreshOverlay from '../../components/LogoRefreshOverlay';
+import { useLogoRefresh } from '../../hooks/useLogoRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
@@ -24,10 +26,11 @@ export default function LeaderboardScreen() {
   const user   = useAuthStore((s) => s.user);
   const insets = useSafeAreaInsets();
 
-  const [data, setData]           = useState<LeaderboardResponse | null>(null);
-  const [loading, setLoading]     = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError]         = useState<string | null>(null);
+  const { refreshing, logoOpacity, logoScale, onRefresh } = useLogoRefresh();
+
+  const [data, setData]       = useState<LeaderboardResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -46,10 +49,8 @@ export default function LeaderboardScreen() {
     })();
   }, []);
 
-  async function handleRefresh() {
-    setRefreshing(true);
-    await fetchData();
-    setRefreshing(false);
+  function handleRefresh() {
+    return onRefresh(fetchData);
   }
 
   if (loading) return <LogoLoader />;
@@ -93,16 +94,24 @@ export default function LeaderboardScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.heading}>
-        <Text style={styles.headingText}>Weekly Board</Text>
-        <Text style={styles.headingMeta}>{data.week} · resets {formatReset(data.resetAt)}</Text>
-      </View>
-
       <FlatList
         data={data.entries}
         keyExtractor={(item) => item.userId}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="transparent"
+            colors={['transparent']}
+          />
+        }
+        ListHeaderComponent={
+          <View style={styles.heading}>
+            <Text style={styles.headingText}>Weekly Board</Text>
+            <Text style={styles.headingMeta}>{data.week} · resets {formatReset(data.resetAt)}</Text>
+          </View>
+        }
         renderItem={renderEntry}
         ListEmptyComponent={<Text style={styles.emptyText}>No entries yet this week.</Text>}
       />
@@ -114,6 +123,7 @@ export default function LeaderboardScreen() {
           </Text>
         </View>
       )}
+      <LogoRefreshOverlay opacity={logoOpacity} scale={logoScale} top={insets.top + 6} />
     </View>
   );
 }
@@ -124,12 +134,12 @@ const styles = StyleSheet.create({
   heading:      { padding: 20, paddingBottom: 12, gap: 4 },
   headingText:  { fontSize: 22, fontWeight: '700', color: Colors.text },
   headingMeta:  { fontSize: 12, color: Colors.textMuted },
-  list:         { paddingHorizontal: 16, gap: 8 },
+  list:         { gap: 8, paddingBottom: 8 },
   emptyText:    { color: Colors.textMuted, textAlign: 'center', marginTop: 40 },
   errorText:    { color: Colors.error, textAlign: 'center' },
   retryButton:  { paddingHorizontal: 20, paddingVertical: 8 },
   retryText:    { color: Colors.primary, fontSize: 14 },
-  row:          { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 10, borderWidth: 1, borderColor: Colors.border, paddingVertical: 12, paddingHorizontal: 14, gap: 12 },
+  row:          { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 10, borderWidth: 1, borderColor: Colors.border, paddingVertical: 12, paddingHorizontal: 14, gap: 12, marginHorizontal: 16 },
   rowHighlight: { borderColor: Colors.primary, backgroundColor: Colors.primaryFaded },
   rank:         { width: 28, fontSize: 14, fontWeight: '700', textAlign: 'center' },
   name:         { flex: 1, fontSize: 15, color: Colors.text },

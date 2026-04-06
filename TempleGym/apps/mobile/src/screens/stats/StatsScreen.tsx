@@ -8,6 +8,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import LogoLoader from '../../components/LogoLoader';
+import LogoRefreshOverlay from '../../components/LogoRefreshOverlay';
+import { useLogoRefresh } from '../../hooks/useLogoRefresh';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
@@ -30,10 +32,11 @@ function formatDate(iso: string): string {
 export default function StatsScreen() {
   const insets       = useSafeAreaInsets();
   const preferMetric = useAuthStore((s) => s.user?.preferMetric ?? true);
-  const [stats, setStats]         = useState<ExerciseStat[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError]         = useState<string | null>(null);
+  const { refreshing, logoOpacity, logoScale, onRefresh } = useLogoRefresh();
+
+  const [stats, setStats]     = useState<ExerciseStat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -52,23 +55,32 @@ export default function StatsScreen() {
     })();
   }, []);
 
-  async function handleRefresh() {
-    setRefreshing(true);
-    await fetchStats();
-    setRefreshing(false);
+  function handleRefresh() {
+    return onRefresh(fetchStats);
   }
 
   if (loading) return <LogoLoader />;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Text style={styles.heading}>Personal Records</Text>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
       <FlatList
         data={stats}
         keyExtractor={(item) => item.exercise.id}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="transparent"
+            colors={['transparent']}
+          />
+        }
+        ListHeaderComponent={
+          <>
+            <Text style={styles.heading}>Personal Records</Text>
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          </>
+        }
         ListEmptyComponent={<Text style={styles.emptyText}>No workouts logged yet.</Text>}
         renderItem={({ item }) => {
           const displayWeight = preferMetric
@@ -94,6 +106,7 @@ export default function StatsScreen() {
           );
         }}
       />
+      <LogoRefreshOverlay opacity={logoOpacity} scale={logoScale} top={insets.top + 6} />
     </View>
   );
 }
@@ -102,9 +115,9 @@ const styles = StyleSheet.create({
   container:   { flex: 1, backgroundColor: Colors.background },
   heading:     { fontSize: 22, fontWeight: '700', color: Colors.text, padding: 20, paddingBottom: 12 },
   errorText:   { color: Colors.error, fontSize: 13, textAlign: 'center', marginTop: 24, marginBottom: 8 },
-  list:        { paddingHorizontal: 16, gap: 10 },
+  list:        { gap: 10, paddingBottom: 8 },
   emptyText:   { color: Colors.textMuted, textAlign: 'center', marginTop: 40 },
-  row:         { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 14, gap: 12 },
+  row:         { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 14, gap: 12, marginHorizontal: 16 },
   rowLeft:     { flex: 1, gap: 4 },
   rowTop:      { flexDirection: 'row', alignItems: 'center', gap: 8 },
   name:        { fontSize: 15, fontWeight: '600', color: Colors.text },

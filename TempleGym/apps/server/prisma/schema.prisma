@@ -11,6 +11,9 @@ generator client {
 enum SessionType {
   PUSH
   PULL
+  LEGS
+  CARDIO
+  FULL_BODY
 }
 
 model User {

@@ -13,11 +13,12 @@ export interface RoutineFolder {
 }
 
 interface RoutinesState {
-  userId:       string | null;
-  folders:      RoutineFolder[];
-  defaultItems: SavedRoutine[];
-  _defaultOpen: boolean;
-  hydrated:     boolean;
+  userId:          string | null;
+  folders:         RoutineFolder[];
+  defaultItems:    SavedRoutine[];
+  _defaultOpen:    boolean;
+  _defaultHidden:  boolean;
+  hydrated:        boolean;
 
   hydrate:              (userId: string) => Promise<void>;
   addFolder:            (name: string) => void;
@@ -28,6 +29,8 @@ interface RoutinesState {
   removeRoutineItem:    (folderId: number | 'default', index: number) => void;
   duplicateRoutineItem: (folderId: number | 'default', index: number) => void;
   replaceRoutineItem:   (folderId: number | 'default', index: number, routine: SavedRoutine) => void;
+  deleteFolder:         (id: number) => void;
+  deleteDefaultFolder:  () => void;
 }
 
 async function safe_set(key: string, value: string) {
@@ -39,11 +42,12 @@ async function safe_get(key: string): Promise<string | null> {
 }
 
 export const useRoutinesStore = create<RoutinesState>((set, get) => ({
-  userId:       null,
-  folders:      [],
-  defaultItems: [],
-  _defaultOpen: false,
-  hydrated:     false,
+  userId:         null,
+  folders:        [],
+  defaultItems:   [],
+  _defaultOpen:   false,
+  _defaultHidden: false,
+  hydrated:       false,
 
   hydrate: async (userId) => {
     // Load folder IDs
@@ -56,19 +60,20 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
         const raw = await safe_get(folderKey(userId, id));
         if (!raw) return null;
         const f = JSON.parse(raw);
-        return { id, name: f.name, open: f.open ?? false, items: f.items ?? [] } as RoutineFolder;
+        return { id, name: f.name, open: false, items: f.items ?? [] } as RoutineFolder;
       })
     ).then((arr) => arr.filter(Boolean) as RoutineFolder[]);
 
     // Load default items
-    const defRaw  = await safe_get(k(userId, 'tg_default_items'));
-    const defOpen = await safe_get(k(userId, 'tg_default_open'));
+    const defRaw    = await safe_get(k(userId, 'tg_default_items'));
+    const defHidden = await safe_get(k(userId, 'tg_default_hidden'));
 
     set({
       userId,
       folders,
-      defaultItems: defRaw ? JSON.parse(defRaw) : [],
-      _defaultOpen: defOpen === '1',
+      defaultItems:   defRaw ? JSON.parse(defRaw) : [],
+      _defaultOpen:   false,
+      _defaultHidden: defHidden === '1',
       hydrated: true,
     });
   },
@@ -114,7 +119,8 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
       const next = [...s.defaultItems, routine];
       safe_set(k(userId, 'tg_default_items'), JSON.stringify(next));
       safe_set(k(userId, 'tg_default_open'), '1');
-      return { defaultItems: next, _defaultOpen: true };
+      safe_set(k(userId, 'tg_default_hidden'), '0');
+      return { defaultItems: next, _defaultOpen: true, _defaultHidden: false };
     });
   },
 
@@ -191,5 +197,22 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
         return { folders: next };
       });
     }
+  },
+
+  deleteFolder: (id) => {
+    const userId = get().userId ?? '';
+    set((s) => {
+      const next = s.folders.filter((f) => f.id !== id);
+      const ids  = next.map((f) => f.id);
+      safe_set(k(userId, 'tg_folder_ids'), JSON.stringify(ids));
+      SecureStore.deleteItemAsync(folderKey(userId, id)).catch(() => {});
+      return { folders: next };
+    });
+  },
+
+  deleteDefaultFolder: () => {
+    const userId = get().userId ?? '';
+    safe_set(k(userId, 'tg_default_hidden'), '1');
+    set({ _defaultHidden: true, _defaultOpen: false });
   },
 }));

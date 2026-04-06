@@ -12,6 +12,7 @@ import {
   Animated,
   LayoutAnimation,
   Image,
+  Dimensions,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -20,6 +21,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants/colors";
 import { api } from "../../services/api";
+import { useAuthStore } from "../../store/auth.store";
+import { useWorkoutStore } from "../../store/workout.store";
+import { useRoutinesStore } from "../../store/routines.store";
+import type { MainStackParamList } from "../../navigation/types";
+import type {
+  Exercise,
+  SessionType,
+  WorkoutSession,
+  WorkoutsListResponse,
+} from "@templegym/types";
 
 const TIERS = [
   { name: "Champion", min: 2801, color: Colors.champion },
@@ -45,15 +56,6 @@ function tierOuterBg(pts: number) {
   const hex = getTier(pts).color;
   return hex + "0C"; // ~5% — very light halo on the outer card
 }
-import { useAuthStore } from "../../store/auth.store";
-import { useWorkoutStore } from "../../store/workout.store";
-import { useRoutinesStore } from "../../store/routines.store";
-import type { MainStackParamList } from "../../navigation/types";
-import type {
-  SessionType,
-  WorkoutSession,
-  WorkoutsListResponse,
-} from "@templegym/types";
 
 type Nav = NativeStackNavigationProp<MainStackParamList, "Home">;
 type Route = RouteProp<MainStackParamList, "Home">;
@@ -72,38 +74,22 @@ const SESSION_INFO: Record<
   },
 };
 
-const SESSION_CARDS: {
-  type: SessionType;
-  label: string;
-  description: string;
-}[] = [
-  { type: "PUSH", label: "Push", description: "Chest, shoulders and triceps" },
-  { type: "PULL", label: "Pull", description: "Back, biceps and rear delts" },
-  {
-    type: "LEGS",
-    label: "Legs",
-    description: "Quads, hamstrings, glutes and calves",
-  },
-  {
-    type: "CARDIO",
-    label: "Cardio",
-    description: "Running, cycling, rowing, etc.",
-  },
-  {
-    type: "FULL_BODY",
-    label: "Full Body",
-    description: "A mix of upper and lower body exercises",
-  },
-];
+const SESSION_CARDS = (Object.keys(SESSION_INFO) as SessionType[]).map(
+  (type) => ({ type, ...SESSION_INFO[type] }),
+);
 
 function suggestedSession(lastType: SessionType | null): SessionType {
-  if (!lastType || lastType === "PULL") return "PUSH";
-  return "PULL";
+  if (!lastType || lastType === "CARDIO" || lastType === "FULL_BODY") return "PUSH";
+  if (lastType === "PUSH") return "PULL";
+  if (lastType === "PULL") return "LEGS";
+  return "PUSH"; // LEGS → back to start of PPL cycle
 }
 
 function detectType(exs: { category: SessionType }[]): SessionType {
-  const push = exs.filter((e) => e.category === "PUSH").length;
-  return push >= exs.length / 2 ? "PUSH" : "PULL";
+  if (!exs.length) return "PUSH";
+  const counts = {} as Record<SessionType, number>;
+  for (const e of exs) counts[e.category] = (counts[e.category] ?? 0) + 1;
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as SessionType;
 }
 
 export default function HomeScreen() {
@@ -127,6 +113,9 @@ export default function HomeScreen() {
     removeRoutineItem,
     duplicateRoutineItem,
     replaceRoutineItem,
+    deleteFolder,
+    deleteDefaultFolder,
+    _defaultHidden,
   } = useRoutinesStore();
   const defaultRoutineName = "My Routine";
 
@@ -280,7 +269,10 @@ export default function HomeScreen() {
     pageY: number,
   ) {
     const key = `${folderId}:${index}`;
-    setCardMenuTop(pageY - 16);
+    const screenH = Dimensions.get("window").height;
+    const menuH = 150; // 3 items ~41px each + 2 dividers + buffer
+    const clamped = Math.min(pageY - 16, screenH - menuH - 20);
+    setCardMenuTop(clamped);
     setCardMenuKey((prev) => (prev === key ? null : key));
   }
 
@@ -288,6 +280,13 @@ export default function HomeScreen() {
     setPlanVisible(false);
     setRoutineExpanded(false);
     startSession(type);
+    navigation.navigate("SessionLogging");
+  }
+
+  function handleStartRoutine(exercises: Exercise[]) {
+    setPlanVisible(false);
+    setRoutineExpanded(false);
+    startSession(detectType(exercises), exercises);
     navigation.navigate("SessionLogging");
   }
 
@@ -404,28 +403,27 @@ export default function HomeScreen() {
 
         {/* Start a Session */}
         <Text style={styles.sectionLabel}>Start a Session</Text>
-        <View style={styles.sessionCards}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.sessionCardsScroll}
+          contentContainerStyle={styles.sessionCardsContent}
+        >
           {SESSION_CARDS.map((card) => (
             <TouchableOpacity
               key={card.type}
-              style={styles.sessionCard}
+              style={styles.sessionScrollCard}
               onPress={() => handleStart(card.type)}
               activeOpacity={0.75}
             >
-              <View style={styles.sessionCardAccent} />
-              <View style={styles.sessionCardBody}>
-                <Text style={styles.sessionCardLabel}>{card.label}</Text>
-                <Text style={styles.sessionCardDesc}>{card.description}</Text>
+              <View style={styles.sessionScrollCardAccent} />
+              <View style={styles.sessionScrollCardBody}>
+                <Text style={styles.sessionScrollCardLabel}>{card.label}</Text>
+                <Text style={styles.sessionScrollCardDesc}>{card.description}</Text>
               </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={Colors.primary}
-                style={styles.sessionCardChevron}
-              />
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
 
         {/* Routines */}
         <View style={styles.routinesSectionHeader}>
@@ -502,21 +500,25 @@ export default function HomeScreen() {
                       {item.exercises.length} exercise
                       {item.exercises.length !== 1 ? "s" : ""}
                     </Text>
-                    {item.exercises.map((ex, idx, arr) => (
-                      <Text
-                        key={`${ex.id}-${idx}`}
-                        style={
-                          idx === arr.length - 1
-                            ? styles.routineCardLastEx
-                            : styles.routineCardExercise
-                        }
-                      >
-                        {ex.name}
-                      </Text>
-                    ))}
+                    {item.exercises.length === 0 ? (
+                      <Text style={styles.routineCardEmpty}>No exercises</Text>
+                    ) : (
+                      item.exercises.map((ex, idx, arr) => (
+                        <Text
+                          key={`${ex.id}-${idx}`}
+                          style={
+                            idx === arr.length - 1
+                              ? styles.routineCardLastEx
+                              : styles.routineCardExercise
+                          }
+                        >
+                          {ex.name}
+                        </Text>
+                      ))
+                    )}
                     <TouchableOpacity
                       style={styles.routineCardStart}
-                      onPress={() => handleStart(detectType(item.exercises))}
+                      onPress={() => handleStartRoutine(item.exercises)}
                     >
                       <Text style={styles.routineCardStartText}>Start</Text>
                     </TouchableOpacity>
@@ -527,8 +529,8 @@ export default function HomeScreen() {
           </View>
         ))}
 
-        {/* Default My Routine — always present, cannot be deleted */}
-        <View style={styles.routineGroup}>
+        {/* Default My Routine */}
+        {!_defaultHidden && <View style={styles.routineGroup}>
           <TouchableOpacity
             style={styles.routinesHeader}
             onPress={() => {
@@ -590,21 +592,25 @@ export default function HomeScreen() {
                     {item.exercises.length} exercise
                     {item.exercises.length !== 1 ? "s" : ""}
                   </Text>
-                  {item.exercises.map((ex, idx, arr) => (
-                    <Text
-                      key={ex.id}
-                      style={
-                        idx === arr.length - 1
-                          ? styles.routineCardLastEx
-                          : styles.routineCardExercise
-                      }
-                    >
-                      {ex.name}
-                    </Text>
-                  ))}
+                  {item.exercises.length === 0 ? (
+                    <Text style={styles.routineCardEmpty}>No exercises</Text>
+                  ) : (
+                    item.exercises.map((ex, idx, arr) => (
+                      <Text
+                        key={ex.id}
+                        style={
+                          idx === arr.length - 1
+                            ? styles.routineCardLastEx
+                            : styles.routineCardExercise
+                        }
+                      >
+                        {ex.name}
+                      </Text>
+                    ))
+                  )}
                   <TouchableOpacity
                     style={styles.routineCardStart}
-                    onPress={() => handleStart(detectType(item.exercises))}
+                    onPress={() => handleStartRoutine(item.exercises)}
                   >
                     <Text style={styles.routineCardStartText}>Start</Text>
                   </TouchableOpacity>
@@ -612,7 +618,7 @@ export default function HomeScreen() {
               ))}
             </View>
           )}
-        </View>
+        </View>}
 
         {/* Info Modal */}
         <Modal visible={infoVisible} transparent animationType="fade">
@@ -621,11 +627,7 @@ export default function HomeScreen() {
             onPress={() => setInfoVisible(false)}
           >
             <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>Push / Pull Split</Text>
-              <Text style={styles.modalBody}>
-                The Push/Pull split alternates muscle groups so each group gets
-                a full day of rest before being trained again.
-              </Text>
+              <Text style={styles.modalTitle}>Session Types</Text>
               <Text style={styles.modalBody}>
                 <Text style={styles.modalBold}>Push</Text> — Chest, shoulders
                 and triceps. Muscles involved in pushing movements.
@@ -634,8 +636,21 @@ export default function HomeScreen() {
                 <Text style={styles.modalBold}>Pull</Text> — Back, biceps and
                 rear delts. Muscles involved in pulling movements.
               </Text>
+              <Text style={styles.modalBody}>
+                <Text style={styles.modalBold}>Legs</Text> — Quads, hamstrings,
+                glutes and calves.
+              </Text>
+              <Text style={styles.modalBody}>
+                <Text style={styles.modalBold}>Cardio</Text> — Running, cycling,
+                rowing, and other endurance work.
+              </Text>
+              <Text style={styles.modalBody}>
+                <Text style={styles.modalBold}>Full Body</Text> — A mix of upper
+                and lower body exercises.
+              </Text>
               <Text style={styles.modalHint}>
-                Today's suggestion is based on your last session.
+                Today's suggestion follows a Push → Pull → Legs cycle based on
+                your last session.
               </Text>
               <TouchableOpacity
                 style={styles.modalClose}
@@ -729,7 +744,7 @@ export default function HomeScreen() {
                     <TouchableOpacity
                       key={i}
                       style={styles.planRoutineItem}
-                      onPress={() => handleStart(detectType(item.exercises))}
+                      onPress={() => handleStartRoutine(item.exercises)}
                       activeOpacity={0.75}
                     >
                       <View style={{ flex: 1 }}>
@@ -894,38 +909,53 @@ export default function HomeScreen() {
       {/* Floating barbell popup — outside ScrollView so it overlays everything */}
       {popupId !== null &&
         (() => {
-          const folderName =
-            popupId === "default"
-              ? defaultRoutineName
-              : (folders.find((r) => r.id === popupId)?.name ?? "");
+          const isDefault    = popupId === "default";
+          const visibleCount = folders.length + (_defaultHidden ? 0 : 1);
+          const canDelete    = visibleCount > 1;
+          const folderName   = isDefault
+            ? defaultRoutineName
+            : (folders.find((f) => f.id === popupId)?.name ?? "");
           return (
             <Pressable
               style={styles.popupOverlay}
               onPress={() => setPopupId(null)}
             >
-              <TouchableOpacity
-                style={[styles.barbellPopup, { top: popupTop }]}
-                onPress={() => {
-                  const targetId = popupId;
-                  const name =
-                    targetId === "default"
-                      ? defaultRoutineName
-                      : (folders.find((r) => r.id === targetId)?.name ?? "");
-                  setPopupId(null);
-                  navigation.navigate("AddRoutine", {
-                    folderId: targetId!,
-                    folderName: name,
-                  });
-                }}
-                activeOpacity={0.85}
-              >
-                <Ionicons
-                  name="add-circle-outline"
-                  size={16}
-                  color={Colors.primary}
-                />
-                <Text style={styles.barbellPopupText}>Add new routine</Text>
-              </TouchableOpacity>
+              <View style={[styles.barbellPopup, { top: popupTop }]}>
+                <TouchableOpacity
+                  style={styles.popupRow}
+                  onPress={() => {
+                    setPopupId(null);
+                    navigation.navigate("AddRoutine", {
+                      folderId: popupId!,
+                      folderName,
+                    });
+                  }}
+                  activeOpacity={0.75}
+                >
+                  <Ionicons name="add-circle-outline" size={16} color={Colors.primary} />
+                  <Text style={styles.barbellPopupText}>Add new routine</Text>
+                </TouchableOpacity>
+                {canDelete && (
+                  <>
+                    <View style={styles.popupDivider} />
+                    <TouchableOpacity
+                      style={styles.popupRow}
+                      onPress={() => {
+                        setPopupId(null);
+                        if (isDefault) {
+                          deleteDefaultFolder();
+                        } else {
+                          deleteFolder(popupId as number);
+                        }
+                      }}
+                      activeOpacity={0.75}
+                    >
+                      <Ionicons name="trash-outline" size={16} color={Colors.error} />
+                      <Text style={[styles.barbellPopupText, { color: Colors.error }]}>Delete folder</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
             </Pressable>
           );
         })()}
@@ -1018,7 +1048,32 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     letterSpacing: 0.5,
   },
-  sessionCards: { gap: 10 },
+  // Horizontal scroll cards (Start a Session)
+  sessionCardsScroll: { marginHorizontal: -20 },
+  sessionCardsContent: {
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 20,
+  },
+  sessionScrollCard: {
+    width: 130,
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: "hidden",
+  },
+  sessionScrollCardAccent: {
+    height: 4,
+    backgroundColor: Colors.primary,
+  },
+  sessionScrollCardBody: {
+    padding: 12,
+    gap: 4,
+  },
+  sessionScrollCardLabel: { fontSize: 15, fontWeight: "700", color: Colors.text },
+  sessionScrollCardDesc: { fontSize: 12, color: Colors.textMuted },
+  // Full-width session cards (plan picker modal)
   sessionCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -1073,7 +1128,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingTop: 12,
+    paddingBottom: 14,
     gap: 4,
   },
   routineCardHeader: {
@@ -1087,7 +1143,8 @@ const styles = StyleSheet.create({
     color: Colors.text,
     flex: 1,
   },
-  routineCardCount: { fontSize: 12, color: Colors.textMuted, marginBottom: 4 },
+  routineCardCount: { fontSize: 12, color: Colors.textMuted, marginBottom: 6 },
+  routineCardEmpty: { fontSize: 13, color: Colors.textMuted, fontStyle: 'italic', paddingRight: 64 },
   routineCardExercise: { fontSize: 14, color: Colors.text },
   routineCardLastEx: { fontSize: 14, color: Colors.text, paddingRight: 64 },
   routineCardStart: {
@@ -1135,21 +1192,25 @@ const styles = StyleSheet.create({
   barbellPopup: {
     position: "absolute",
     right: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
     backgroundColor: Colors.surface,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: Colors.border,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 5,
   },
+  popupRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  popupDivider: { height: 1, backgroundColor: Colors.border },
   barbellPopupText: { fontSize: 13, color: Colors.text, fontWeight: "500" },
   folderInput: {
     backgroundColor: Colors.background,

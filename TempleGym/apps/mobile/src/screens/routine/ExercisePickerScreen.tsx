@@ -5,12 +5,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
+  ScrollView,
 } from 'react-native';
 import LogoLoader from '../../components/LogoLoader';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
@@ -20,16 +20,18 @@ import type { Exercise, SessionType } from '@templegym/types';
 type Nav   = NativeStackNavigationProp<MainStackParamList, 'ExercisePicker'>;
 type Route = RouteProp<MainStackParamList, 'ExercisePicker'>;
 
-const CATEGORIES: { key: SessionType; label: string }[] = [
-  { key: 'PUSH', label: 'Push' },
-  { key: 'PULL', label: 'Pull' },
+const CATEGORIES: { key: SessionType; label: string; subtitle: string }[] = [
+  { key: 'PUSH',      label: 'Push',      subtitle: 'Chest · Shoulders · Triceps' },
+  { key: 'PULL',      label: 'Pull',      subtitle: 'Back · Biceps · Rear Delts' },
+  { key: 'LEGS',      label: 'Legs',      subtitle: 'Quads · Hamstrings · Glutes · Calves' },
+  { key: 'CARDIO',    label: 'Cardio',    subtitle: 'Running · Cycling · Rowing' },
+  { key: 'FULL_BODY', label: 'Full Body', subtitle: 'Compound · Multi-muscle' },
 ];
 
 export default function ExercisePickerScreen() {
   const navigation  = useNavigation<Nav>();
   const { params }  = useRoute<Route>();
-  const insets      = useSafeAreaInsets();
-  const [exercises, setExercises] = useState<Exercise[]>([]);
+const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading]     = useState(true);
   const [activeTab, setActiveTab] = useState<SessionType>('PUSH');
 
@@ -41,17 +43,18 @@ export default function ExercisePickerScreen() {
   }, []);
 
   function handleSelect(exercise: Exercise) {
-    navigation.navigate('AddRoutine', {
-      folderId:         params.folderId,
-      folderName:       params.folderName,
-      selectedExercise: exercise,
-    });
+    params.onSelect(exercise);
+    navigation.goBack();
   }
 
-  const filtered = exercises.filter((e) => e.category === activeTab);
+  const filtered = activeTab === 'FULL_BODY'
+    ? exercises.filter((e) => e.category === 'PUSH' || e.category === 'PULL' || e.category === 'FULL_BODY')
+    : exercises.filter((e) => e.category === activeTab);
+
+  if (loading) return <LogoLoader />;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -62,7 +65,12 @@ export default function ExercisePickerScreen() {
       </View>
 
       {/* Category tabs */}
-      <View style={styles.tabs}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.tabsScroll}
+        contentContainerStyle={styles.tabs}
+      >
         {CATEGORIES.map((cat) => (
           <TouchableOpacity
             key={cat.key}
@@ -74,55 +82,52 @@ export default function ExercisePickerScreen() {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
 
       {/* Subtitle */}
       <Text style={styles.subtitle}>
-        {activeTab === 'PUSH' ? 'Chest · Shoulders · Triceps' : 'Back · Biceps · Rear Delts'}
+        {CATEGORIES.find((c) => c.key === activeTab)?.subtitle}
       </Text>
 
-      {/* Exercise slider */}
-      {loading ? (
-        <LogoLoader />
-      ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.slider}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => handleSelect(item)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.cardAccent} />
-              <View style={styles.cardBody}>
-                <Text style={styles.cardCategory}>{item.category}</Text>
-                <Text style={styles.cardName}>{item.name}</Text>
-                {item.subCategory ? (
-                  <Text style={styles.cardSub}>{item.subCategory}</Text>
-                ) : null}
-                <View style={styles.cardMuscleList}>
-                  {item.muscleGroups.map((m) => (
-                    <View key={m} style={styles.musclePill}>
-                      <Text style={styles.musclePillText}>{m}</Text>
-                    </View>
-                  ))}
-                </View>
+      {/* Exercise list */}
+      <FlatList
+        style={{ flex: 1 }}
+        data={filtered}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.slider}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => handleSelect(item)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardAccent} />
+            <View style={styles.cardBody}>
+              <Text style={styles.cardCategory}>{item.category}</Text>
+              <Text style={styles.cardName}>{item.name}</Text>
+              {item.subCategory ? (
+                <Text style={styles.cardSub}>{item.subCategory}</Text>
+              ) : null}
+              <View style={styles.cardMuscleList}>
+                {item.muscleGroups.map((m) => (
+                  <View key={m} style={styles.musclePill}>
+                    <Text style={styles.musclePillText}>{m}</Text>
+                  </View>
+                ))}
               </View>
-              <View style={styles.cardSelectRow}>
-                <Text style={styles.cardSelectText}>Tap to select</Text>
-                <Ionicons name="arrow-forward-circle-outline" size={18} color={Colors.primary} />
-              </View>
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyWrap}>
-              <Text style={styles.emptyText}>No exercises found.</Text>
             </View>
-          }
-        />
-      )}
+            <View style={styles.cardSelectRow}>
+              <Text style={styles.cardSelectText}>Tap to select</Text>
+              <Ionicons name="arrow-forward-circle-outline" size={18} color={Colors.primary} />
+            </View>
+          </TouchableOpacity>
+        )}
+        ListEmptyComponent={
+          <View style={styles.emptyWrap}>
+            <Text style={styles.emptyText}>No exercises found.</Text>
+          </View>
+        }
+      />
     </View>
   );
 }
@@ -133,14 +138,15 @@ const styles = StyleSheet.create({
   backBtn:         { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   headerTitle:     { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: Colors.text },
   headerSpacer:    { width: 36 },
-  tabs:            { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 4 },
-  tab:             { flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center' },
+  tabsScroll:      { alignSelf: 'flex-start' },
+  tabs:            { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4, alignItems: 'flex-start' },
+  tab:             { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center' },
   tabActive:       { backgroundColor: Colors.primary, borderColor: Colors.primary },
   tabText:         { fontSize: 14, fontWeight: '600', color: Colors.textMuted },
   tabTextActive:   { color: Colors.text },
   subtitle:        { fontSize: 12, color: Colors.textMuted, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
   loader:          { marginTop: 60 },
-  slider:          { paddingHorizontal: 20, paddingBottom: 24, gap: 12 },
+  slider:          { paddingHorizontal: 20, paddingBottom: 24, gap: 12, flexGrow: 1 },
   card:            { backgroundColor: Colors.surface, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
   cardAccent:      { height: 4, backgroundColor: Colors.primary },
   cardBody:        { padding: 16, gap: 6 },
@@ -152,6 +158,6 @@ const styles = StyleSheet.create({
   musclePillText:  { fontSize: 11, color: Colors.primary, fontWeight: '500' },
   cardSelectRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: Colors.border, paddingHorizontal: 16, paddingVertical: 10 },
   cardSelectText:  { fontSize: 13, color: Colors.primary, fontWeight: '600' },
-  emptyWrap:       { paddingTop: 60, paddingLeft: 20 },
+  emptyWrap:       { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
   emptyText:       { fontSize: 14, color: Colors.textMuted },
 });

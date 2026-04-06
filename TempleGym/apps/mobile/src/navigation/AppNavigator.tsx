@@ -19,7 +19,7 @@ const TIERS = [
 
 function tierTint(pts: number): string | null {
   const tier = TIERS.find((t) => pts >= t.min) ?? TIERS[TIERS.length - 1];
-  return tier.color ? tier.color + '05' : null; // ~2% opacity
+  return tier.color ? tier.color + '0A' : null; // ~4% opacity
 }
 
 import HomeScreen           from '../screens/home/HomeScreen';
@@ -53,7 +53,7 @@ export default function AppNavigator() {
           <Stack.Screen name="Stats"           component={StatsScreen} />
           <Stack.Screen name="Settings"       component={SettingsScreen} />
           <Stack.Screen name="AddRoutine"      component={AddRoutineScreen} />
-          <Stack.Screen name="ExercisePicker" component={ExercisePickerScreen} />
+          <Stack.Screen name="ExercisePicker" component={ExercisePickerScreen} options={{ presentation: 'modal' }} />
         </Stack.Navigator>
       </View>
       <BottomTabBar />

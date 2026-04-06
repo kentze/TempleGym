@@ -23,7 +23,7 @@ const exerciseEntrySchema = z.object({
 });
 
 const submitWorkoutSchema = z.object({
-  type:      z.enum(['PUSH', 'PULL']),
+  type:      z.enum(['PUSH', 'PULL', 'LEGS', 'CARDIO', 'FULL_BODY']),
   startedAt: z.string().datetime(),
   endedAt:   z.string().datetime(),
   gpsLat:    z.number().optional(),
@@ -38,7 +38,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
 
   const { type, startedAt, endedAt, gpsLat, gpsLng, exercises } = parsed.data;
 
-  const exerciseIds     = exercises.map((e) => e.exerciseId);
+  const exerciseIds     = [...new Set(exercises.map((e) => e.exerciseId))];
   const foundExercises  = await prisma.exercise.findMany({ where: { id: { in: exerciseIds } } });
   if (foundExercises.length !== exerciseIds.length) {
     return res.status(400).json({ error: 'One or more exercises not found' });
