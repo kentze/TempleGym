@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   backBtn:         { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   headerTitle:     { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: Colors.text },
   headerSpacer:    { width: 36 },
-  tabsScroll:      { alignSelf: 'flex-start' },
+  tabsScroll:      { height: 58 },
   tabs:            { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4, alignItems: 'flex-start' },
   tab:             { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center' },
   tabActive:       { backgroundColor: Colors.primary, borderColor: Colors.primary },
