@@ -1,0 +1,34 @@
+node_modules/
+dist/
+build/
+.expo/
+.expo-shared/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Prisma generated client
+apps/server/node_modules/.prisma/
+
+# Test coverage
+apps/server/coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Expo
+apps/mobile/.expo/
+ios/
+apps/mobile/ios/
+apps/mobile/android/
