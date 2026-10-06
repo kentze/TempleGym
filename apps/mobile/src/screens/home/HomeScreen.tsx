@@ -23,6 +23,7 @@ import { api } from "../../services/api";
 import { useAuthStore } from "../../store/auth.store";
 import { useWorkoutStore } from "../../store/workout.store";
 import { useRoutinesStore } from "../../store/routines.store";
+import { useOnboardingStore, hasSeenOnboarding } from "../../store/onboarding.store";
 import type { MainStackParamList } from "../../navigation/types";
 import type {
   Exercise,
@@ -135,6 +136,14 @@ export default function HomeScreen() {
   // Hydrate persisted routines on mount (scoped to logged-in user)
   useEffect(() => {
     if (user?.id) hydrate(user.id);
+  }, [user?.id]);
+
+  // Show onboarding tutorial once per user, first login only
+  useEffect(() => {
+    if (!user?.id) return;
+    hasSeenOnboarding(user.id).then((seen) => {
+      if (!seen) useOnboardingStore.getState().show();
+    });
   }, [user?.id]);
 
   // Receive saved/updated routine navigated back from AddRoutineScreen

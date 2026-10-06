@@ -4,6 +4,7 @@ import { Colors } from '../constants/colors';
 import BottomTabBar from './BottomTabBar';
 import { MainStackParamList } from './types';
 import { useAuthStore } from '../store/auth.store';
+import OnboardingTutorial from '../components/onboarding/OnboardingTutorial';
 
 const TIERS = [
   { min: 2801, color: Colors.champion },
@@ -56,6 +57,7 @@ export default function AppNavigator() {
         </Stack.Navigator>
       </View>
       <BottomTabBar />
+      <OnboardingTutorial />
     </View>
   );
 }
