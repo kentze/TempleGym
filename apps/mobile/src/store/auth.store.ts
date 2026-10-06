@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import type { UserProfile } from '@templegym/types';
+import { useOnboardingStore } from './onboarding.store';
 
 const TOKEN_KEY = 'templegym_jwt';
 
@@ -32,6 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     set({ token: null, user: null, isAuthenticated: false });
+    useOnboardingStore.getState().hide();
   },
 
   rehydrate: async () => {

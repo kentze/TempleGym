@@ -141,9 +141,11 @@ export default function HomeScreen() {
   // Show onboarding tutorial once per user, first login only
   useEffect(() => {
     if (!user?.id) return;
+    let cancelled = false;
     hasSeenOnboarding(user.id).then((seen) => {
-      if (!seen) useOnboardingStore.getState().show();
+      if (!cancelled && !seen) useOnboardingStore.getState().show();
     });
+    return () => { cancelled = true; };
   }, [user?.id]);
 
   // Receive saved/updated routine navigated back from AddRoutineScreen
