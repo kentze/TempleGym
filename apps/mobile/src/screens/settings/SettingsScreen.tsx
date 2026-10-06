@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
+import { useOnboardingStore } from '../../store/onboarding.store';
 import type { UpdateProfileBody, UserProfile } from '@templegym/types';
 
 export default function SettingsScreen() {
@@ -209,6 +211,17 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Help</Text>
+        <TouchableOpacity
+          style={styles.helpRow}
+          onPress={() => useOnboardingStore.getState().show()}
+        >
+          <Text style={styles.helpRowText}>Replay Tutorial</Text>
+          <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+        </TouchableOpacity>
+      </View>
+
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {saved ? <Text style={styles.success}>Saved.</Text> : null}
 
@@ -244,6 +257,8 @@ const styles = StyleSheet.create({
   fieldLabel:        { fontSize: 13, color: Colors.textMuted },
   input:             { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11, color: Colors.text, fontSize: 15, letterSpacing: 0 },
   toggle:            { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Colors.surface, borderRadius: 10, borderWidth: 1, borderColor: Colors.border, padding: 14 },
+  helpRow:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Colors.surface, borderRadius: 10, borderWidth: 1, borderColor: Colors.border, padding: 14 },
+  helpRowText:       { fontSize: 15, color: Colors.text },
   toggleLabel:       { fontSize: 15, color: Colors.text },
   toggleSub:         { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
   error:             { color: Colors.error, fontSize: 13, textAlign: 'center' },
