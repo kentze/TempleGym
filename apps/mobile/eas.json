@@ -8,13 +8,13 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://templegym-s1-staging.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://templegym-staging.up.railway.app"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://templegym-s1-staging.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://templegym-staging.up.railway.app"
       }
     },
     "production": {
