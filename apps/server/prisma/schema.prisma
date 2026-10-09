@@ -20,16 +20,14 @@ model User {
   id           String   @id @default(cuid())
   email        String   @unique
   displayName  String?
+  profilePicture  String?   @db.Text
+  gymId        String   @default("city")
   heightCm     Int?
   weightKg     Float?
-  gpsEnabled           Boolean  @default(true)
   preferMetric         Boolean  @default(true)
   leaderboardAnonymous Boolean  @default(false)
-  totalPoints  Int      @default(0)
-  weeklyPoints Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
   workoutSessions WorkoutSession[]
 }
 

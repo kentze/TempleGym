@@ -1,11 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+// Force a fresh client instance to bypass the global development cache
+export const prisma = new PrismaClient({ log: ["error", "warn"] });
 
-export const prisma =
-  globalForPrisma.prisma ?? new PrismaClient({ log: ['error', 'warn'] });
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
-
-process.on('SIGINT',  () => prisma.$disconnect());
-process.on('SIGTERM', () => prisma.$disconnect());
+process.on("SIGINT", () => prisma.$disconnect());
+process.on("SIGTERM", () => prisma.$disconnect());

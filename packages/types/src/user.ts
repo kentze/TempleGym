@@ -2,13 +2,12 @@ export interface UserProfile {
   id: string;
   email: string;
   displayName: string | null;
+  gymId: string;
   heightCm: number | null;
   weightKg: number | null;
   gpsEnabled: boolean;
   preferMetric: boolean;
   leaderboardAnonymous: boolean;
-  totalPoints: number;
-  weeklyPoints: number;
   createdAt: string;
 }
 
