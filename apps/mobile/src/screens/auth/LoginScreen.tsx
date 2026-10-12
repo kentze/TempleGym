@@ -357,7 +357,7 @@ export default function LoginScreen() {
           </Pressable>
         )}
       </View>
-      <Text style={styles.version}>v{Constants.expoConfig?.version}</Text>
+      <Text style={styles.version}>v{appVersion}</Text>
     </KeyboardAvoidingView>
   );
 }
