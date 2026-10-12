@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "totalPoints" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "weeklyPoints" INTEGER NOT NULL DEFAULT 0;

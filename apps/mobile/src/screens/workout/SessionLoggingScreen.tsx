@@ -56,7 +56,6 @@ export default function SessionLoggingScreen() {
 
   const [elapsed, setElapsed] = useState(0);
   const [pickerVisible, setPickerVisible] = useState(false);
-  const [selectedGym, setSelectedGym] = useState<GymLocation>("city");
   const [setInputs, setSetInputs] = useState<Record<string, SetInputs>>({});
   const [error, setError] = useState<string | null>(null);
 
@@ -171,13 +170,17 @@ export default function SessionLoggingScreen() {
 
   const addedIds = new Set(activeSession.exercises.map((e) => e.exerciseId));
 
-  // Load exercises from the catalog matching the selected gym toggle
-  const rawCatalog = GYM_WORKOUT_CATALOG[selectedGym] ?? [];
+  // Automatically derive gym location from the user's profile, defaulting to 'city'
+  const userGym: GymLocation = user?.gymId === "hillside" ? "hillside" : "city";
+
+  // Load exercises exclusively from the catalog matching the user's gym
+  const rawCatalog = GYM_WORKOUT_CATALOG[userGym] ?? [];
   const availableExercises: Exercise[] = rawCatalog.map(
     (ex: any, idx: number) => ({
-      id: ex.id ?? `${selectedGym}-${idx}-${ex.name}`,
+      id: ex.id ?? `${userGym}-${idx}-${ex.name}`,
       name: ex.name,
       category: ex.category ?? "STRENGTH",
+      subCategory: ex.subCategory ?? ex.category ?? "GENERAL",
       muscleGroups: ex.muscleGroups ?? [ex.category ?? "General"],
     }),
   );
@@ -271,51 +274,16 @@ export default function SessionLoggingScreen() {
       >
         <View style={styles.modal}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Add Exercise</Text>
+            <View>
+              <Text style={styles.modalTitle}>Add Exercise</Text>
+              <Text style={styles.modalSubtitle}>
+                Showing equipment for{" "}
+                {userGym === "hillside" ? "Hillside" : "City Campus"}
+              </Text>
+            </View>
             <TouchableOpacity onPress={() => setPickerVisible(false)}>
               <Text style={styles.modalClose}>Done</Text>
             </TouchableOpacity>
-          </View>
-
-          {/* Local Gym Toggle Switch */}
-          <View style={styles.modalToggleWrapper}>
-            <View style={styles.toggleContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.toggleBtn,
-                  selectedGym === "city" && styles.toggleBtnActive,
-                ]}
-                onPress={() => setSelectedGym("city")}
-                activeOpacity={0.8}
-              >
-                <Text
-                  style={[
-                    styles.toggleText,
-                    selectedGym === "city" && styles.toggleTextActive,
-                  ]}
-                >
-                  City Campus
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.toggleBtn,
-                  selectedGym === "hillside" && styles.toggleBtnActive,
-                ]}
-                onPress={() => setSelectedGym("hillside")}
-                activeOpacity={0.8}
-              >
-                <Text
-                  style={[
-                    styles.toggleText,
-                    selectedGym === "hillside" && styles.toggleTextActive,
-                  ]}
-                >
-                  Hillside
-                </Text>
-              </TouchableOpacity>
-            </View>
           </View>
 
           <FlatList
@@ -439,30 +407,8 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   modalTitle: { fontSize: 18, fontWeight: "700", color: Colors.text },
+  modalSubtitle: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
   modalClose: { color: Colors.primary, fontSize: 16 },
-  modalToggleWrapper: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  toggleContainer: {
-    flexDirection: "row",
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 4,
-    gap: 4,
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    borderRadius: 9,
-  },
-  toggleBtnActive: { backgroundColor: Colors.primary },
-  toggleText: { fontSize: 14, fontWeight: "600", color: Colors.textMuted },
-  toggleTextActive: { color: "#fff" },
   pickerRow: {
     padding: 16,
     borderBottomWidth: 1,

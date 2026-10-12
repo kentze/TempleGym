@@ -1,6 +1,5 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -26,6 +25,8 @@ model User {
   weightKg     Float?
   preferMetric         Boolean  @default(true)
   leaderboardAnonymous Boolean  @default(false)
+  totalPoints  Int      @default(0)
+  weeklyPoints Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   workoutSessions WorkoutSession[]
