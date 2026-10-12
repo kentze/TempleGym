@@ -9,6 +9,8 @@ export interface UserProfile {
   preferMetric: boolean;
   leaderboardAnonymous: boolean;
   createdAt: string;
+  totalPoints: number;
+  weeklyPoints: number;
 }
 
 export interface UpdateProfileBody {
