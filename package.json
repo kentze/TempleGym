@@ -15,5 +15,13 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "babel-preset-expo": "~57.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.10.0",
+    "expo": "^57.0.27",
+    "expo-image-picker": "~57.0.20"
+  },
+  "devDependencies": {
+    "prisma": "^7.10.0"
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from "react";
 import {
   View,
   Text,
@@ -6,58 +6,77 @@ import {
   StyleSheet,
   FlatList,
   ScrollView,
-} from 'react-native';
-import LogoLoader from '../../components/LogoLoader';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import type { RouteProp } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
-import { api } from '../../services/api';
-import type { MainStackParamList } from '../../navigation/types';
-import type { Exercise, SessionType } from '@templegym/types';
+} from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import type { RouteProp } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "../../constants/colors";
+import { useAuthStore } from "../../store/auth.store";
+import { GYM_WORKOUT_CATALOG } from "../../../../server/src/data/gymWorkouts";
+import type { MainStackParamList } from "../../navigation/types";
+import type { Exercise, SessionType } from "@templegym/types";
 
-type Nav   = NativeStackNavigationProp<MainStackParamList, 'ExercisePicker'>;
-type Route = RouteProp<MainStackParamList, 'ExercisePicker'>;
+type Nav = NativeStackNavigationProp<MainStackParamList, "ExercisePicker">;
+type Route = RouteProp<MainStackParamList, "ExercisePicker">;
+
+type GymLocation = "city" | "hillside";
 
 const CATEGORIES: { key: SessionType; label: string; subtitle: string }[] = [
-  { key: 'PUSH',      label: 'Push',      subtitle: 'Chest · Shoulders · Triceps' },
-  { key: 'PULL',      label: 'Pull',      subtitle: 'Back · Biceps · Rear Delts' },
-  { key: 'LEGS',      label: 'Legs',      subtitle: 'Quads · Hamstrings · Glutes · Calves' },
-  { key: 'CARDIO',    label: 'Cardio',    subtitle: 'Running · Cycling · Rowing' },
-  { key: 'FULL_BODY', label: 'Full Body', subtitle: 'Compound · Multi-muscle' },
+  { key: "PUSH", label: "Push", subtitle: "Chest · Shoulders · Triceps" },
+  { key: "PULL", label: "Pull", subtitle: "Back · Biceps · Rear Delts" },
+  {
+    key: "LEGS",
+    label: "Legs",
+    subtitle: "Quads · Hamstrings · Glutes · Calves",
+  },
+  { key: "CARDIO", label: "Cardio", subtitle: "Running · Cycling · Rowing" },
+  { key: "FULL_BODY", label: "Full Body", subtitle: "Compound · Multi-muscle" },
 ];
 
 export default function ExercisePickerScreen() {
-  const navigation  = useNavigation<Nav>();
-  const { params }  = useRoute<Route>();
-const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [activeTab, setActiveTab] = useState<SessionType>('PUSH');
+  const navigation = useNavigation<Nav>();
+  const { params } = useRoute<Route>();
+  const user = useAuthStore((s) => s.user);
 
-  useEffect(() => {
-    api.get<Exercise[]>('/exercises')
-      .then(({ data }) => setExercises(data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const [activeTab, setActiveTab] = useState<SessionType>("PUSH");
+
+  // Automatically derive gym location from the user's profile, defaulting to 'city'
+  const userGym: GymLocation = user?.gymId === "hillside" ? "hillside" : "city";
+
+  // Fetch catalog exclusively for the user's assigned gym
+  const rawCatalog = GYM_WORKOUT_CATALOG[userGym] ?? [];
+  const exercises: Exercise[] = rawCatalog.map((ex: any, idx: number) => ({
+    id: ex.id ?? `${userGym}-${idx}-${ex.name}`,
+    name: ex.name,
+    category: ex.category ?? "STRENGTH",
+    subCategory: ex.subCategory ?? "General",
+    muscleGroups: ex.muscleGroups ?? [ex.category ?? "General"],
+  }));
 
   function handleSelect(exercise: Exercise) {
     params.onSelect(exercise);
     navigation.goBack();
   }
 
-  const filtered = activeTab === 'FULL_BODY'
-    ? exercises.filter((e) => e.category === 'PUSH' || e.category === 'PULL' || e.category === 'FULL_BODY')
-    : exercises.filter((e) => e.category === activeTab);
-
-  if (loading) return <LogoLoader />;
+  const filtered =
+    activeTab === "FULL_BODY"
+      ? exercises.filter(
+          (e) =>
+            e.category === "PUSH" ||
+            e.category === "PULL" ||
+            e.category === "FULL_BODY",
+        )
+      : exercises.filter((e) => e.category === activeTab);
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+        >
           <Ionicons name="chevron-back" size={22} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Pick an Exercise</Text>
@@ -77,7 +96,12 @@ const [exercises, setExercises] = useState<Exercise[]>([]);
               style={[styles.tab, activeTab === cat.key && styles.tabActive]}
               onPress={() => setActiveTab(cat.key)}
             >
-              <Text style={[styles.tabText, activeTab === cat.key && styles.tabTextActive]}>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === cat.key && styles.tabTextActive,
+                ]}
+              >
                 {cat.label}
               </Text>
             </TouchableOpacity>
@@ -93,7 +117,8 @@ const [exercises, setExercises] = useState<Exercise[]>([]);
         contentContainerStyle={styles.slider}
         ListHeaderComponent={
           <Text style={styles.subtitle}>
-            {CATEGORIES.find((c) => c.key === activeTab)?.subtitle}
+            {CATEGORIES.find((c) => c.key === activeTab)?.subtitle} ·{" "}
+            {userGym === "hillside" ? "Hillside" : "City Campus"}
           </Text>
         }
         renderItem={({ item }) => (
@@ -119,13 +144,19 @@ const [exercises, setExercises] = useState<Exercise[]>([]);
             </View>
             <View style={styles.cardSelectRow}>
               <Text style={styles.cardSelectText}>Tap to select</Text>
-              <Ionicons name="arrow-forward-circle-outline" size={18} color={Colors.primary} />
+              <Ionicons
+                name="arrow-forward-circle-outline"
+                size={18}
+                color={Colors.primary}
+              />
             </View>
           </TouchableOpacity>
         )}
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
-            <Text style={styles.emptyText}>No exercises found.</Text>
+            <Text style={styles.emptyText}>
+              No exercises found for this gym.
+            </Text>
           </View>
         }
       />
@@ -134,31 +165,113 @@ const [exercises, setExercises] = useState<Exercise[]>([]);
 }
 
 const styles = StyleSheet.create({
-  container:       { flex: 1, backgroundColor: Colors.background },
-  header:          { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  backBtn:         { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
-  headerTitle:     { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: Colors.text },
-  headerSpacer:    { width: 36 },
-  tabsWrap:        { height: 58, overflow: 'hidden' },
-  tabs:            { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4, alignItems: 'flex-start' },
-  tab:             { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center' },
-  tabActive:       { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  tabText:         { fontSize: 14, fontWeight: '600', color: Colors.textMuted },
-  tabTextActive:   { color: Colors.text },
-  subtitle:        { fontSize: 12, color: Colors.textMuted, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
-  loader:          { marginTop: 60 },
-  slider:          { paddingHorizontal: 20, paddingBottom: 24, gap: 12, flexGrow: 1 },
-  card:            { backgroundColor: Colors.surface, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
-  cardAccent:      { height: 4, backgroundColor: Colors.primary },
-  cardBody:        { padding: 16, gap: 6 },
-  cardCategory:    { fontSize: 10, fontWeight: '700', color: Colors.primary, letterSpacing: 1, textTransform: 'uppercase' },
-  cardName:        { fontSize: 17, fontWeight: '700', color: Colors.text, lineHeight: 22 },
-  cardSub:         { fontSize: 12, color: Colors.textMuted },
-  cardMuscleList:  { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
-  musclePill:      { backgroundColor: Colors.primaryFaded, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  musclePillText:  { fontSize: 11, color: Colors.primary, fontWeight: '500' },
-  cardSelectRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: Colors.border, paddingHorizontal: 16, paddingVertical: 10 },
-  cardSelectText:  { fontSize: 13, color: Colors.primary, fontWeight: '600' },
-  emptyWrap:       { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
-  emptyText:       { fontSize: 14, color: Colors.textMuted },
+  container: { flex: 1, backgroundColor: Colors.background },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 17,
+    fontWeight: "700",
+    color: Colors.text,
+  },
+  headerSpacer: { width: 36 },
+  tabsWrap: { height: 58, overflow: "hidden" },
+  tabs: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 4,
+    alignItems: "flex-start",
+  },
+  tab: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: "center",
+  },
+  tabActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  tabText: { fontSize: 14, fontWeight: "600", color: Colors.textMuted },
+  tabTextActive: { color: Colors.text },
+  subtitle: {
+    fontSize: 12,
+    color: Colors.textMuted,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  slider: { paddingHorizontal: 20, paddingBottom: 24, gap: 12, flexGrow: 1 },
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: "hidden",
+  },
+  cardAccent: { height: 4, backgroundColor: Colors.primary },
+  cardBody: { padding: 16, gap: 6 },
+  cardCategory: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: Colors.primary,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  cardName: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: Colors.text,
+    lineHeight: 22,
+  },
+  cardSub: { fontSize: 12, color: Colors.textMuted },
+  cardMuscleList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+    marginTop: 4,
+  },
+  musclePill: {
+    backgroundColor: Colors.primaryFaded,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  musclePillText: { fontSize: 11, color: Colors.primary, fontWeight: "500" },
+  cardSelectRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  cardSelectText: { fontSize: 13, color: Colors.primary, fontWeight: "600" },
+  emptyWrap: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  emptyText: { fontSize: 14, color: Colors.textMuted },
 });
