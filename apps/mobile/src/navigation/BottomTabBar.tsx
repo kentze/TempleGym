@@ -8,10 +8,11 @@ import { Colors } from '../constants/colors';
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 const TABS: { key: string; label: string; iconOff: IoniconName; iconOn: IoniconName }[] = [
-  { key: 'Home',        label: 'Home',    iconOff: 'home-outline',    iconOn: 'home' },
-  { key: 'History',     label: 'History', iconOff: 'time-outline',    iconOn: 'time' },
-  { key: 'Leaderboard', label: 'Board',   iconOff: 'trophy-outline',  iconOn: 'trophy' },
-  { key: 'Stats',       label: 'Stats',   iconOff: 'bar-chart-outline', iconOn: 'bar-chart' },
+  { key: 'Home',        label: 'Home',     iconOff: 'home-outline',      iconOn: 'home' },
+  { key: 'History',     label: 'History',  iconOff: 'time-outline',      iconOn: 'time' },
+  { key: 'Gauntlet',    label: 'Gauntlet', iconOff: 'flame-outline',     iconOn: 'flame' },
+  { key: 'Leaderboard', label: 'Board',    iconOff: 'trophy-outline',    iconOn: 'trophy' },
+  { key: 'Stats',       label: 'Stats',    iconOff: 'bar-chart-outline', iconOn: 'bar-chart' },
 ];
 
 const HIDDEN_ON = ['SessionLogging', 'SessionDetail', 'Workout', 'AddRoutine', 'ExercisePicker'];
