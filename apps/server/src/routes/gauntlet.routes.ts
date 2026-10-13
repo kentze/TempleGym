@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/auth.middleware';
 import { prisma } from '../utils/prisma';
-import { rankGauntletEntries } from '../services/gauntlet.service';
+import { rankGauntletEntries, formatGauntletUsername } from '../services/gauntlet.service';
 
 const router = Router();
 
@@ -14,10 +14,13 @@ const submitEntrySchema = z.object({
     reps: z.number().int().positive().max(100),
 });
 
+// Keyed on the signed-in user, so it must run after requireAuth. Keying on the
+// IP would make everyone on the same campus Wi-Fi share one budget.
 const submitEntryLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 5,
-    message: { error: 'Too many submission attemps. Try again later.'},
+    keyGenerator: (req) => req.user!.id,
+    message: { error: 'Too many submission attempts. Try again later.' },
 });
 
 // GET /gauntlet/current
@@ -38,9 +41,10 @@ router.get('/current', requireAuth, async (_req: Request, res: Response) => {
     const ranked = rankGauntletEntries(
         entries.map((e) => ({
             userId: e.userId,
-            username: e.user.displayName ?? e.user.email,
+            username: formatGauntletUsername(e.user),
             weightKg: e.weightKg,
             reps: e.reps,
+            submittedAt: e.submittedAt,
         }))
     );
 
@@ -57,7 +61,7 @@ router.get('/current', requireAuth, async (_req: Request, res: Response) => {
 });
 
 // POST /gauntlet/entries
-router.post('/entries', submitEntryLimiter, requireAuth, async (req: Request, res: Response) => {
+router.post('/entries', requireAuth, submitEntryLimiter, async (req: Request, res: Response) => {
     const parsed = submitEntrySchema.safeParse(req.body);
 
     if (!parsed.success)
@@ -77,7 +81,7 @@ router.post('/entries', submitEntryLimiter, requireAuth, async (req: Request, re
     });
 
     if (existingCount >= MAX_ENTRIES_PER_CYCLE) {
-        return res.status(400).json({ error: `You have already submmitted ${MAX_ENTRIES_PER_CYCLE} entries this cycle.`});
+        return res.status(400).json({ error: `You have already submitted ${MAX_ENTRIES_PER_CYCLE} entries this cycle.`});
     }
 
     const entry = await prisma.gauntletEntry.create({

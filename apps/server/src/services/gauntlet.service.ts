@@ -5,13 +5,23 @@ interface GauntletEntryInput {
     username: string;
     weightKg: number;
     reps: number;
+    submittedAt: Date;
+}
+
+// Same display rule as the weekly leaderboard: never expose the full email.
+export function formatGauntletUsername(user: { email: string; leaderboardAnonymous: boolean }): string {
+    return user.leaderboardAnonymous ? 'Anonymous' : user.email.replace('@temple.edu', '');
 }
 
 function compareEntries(a: GauntletEntryInput, b: GauntletEntryInput): number {
     if (b.weightKg != a.weightKg)
         return b.weightKg - a.weightKg;
 
-    return b.reps - a.reps;
+    if (b.reps != a.reps)
+        return b.reps - a.reps;
+
+    // Same weight and reps: whoever lifted it first wins.
+    return a.submittedAt.getTime() - b.submittedAt.getTime();
 }
 
 export function rankGauntletEntries(entries: GauntletEntryInput[]): RankedGauntletEntry[] {

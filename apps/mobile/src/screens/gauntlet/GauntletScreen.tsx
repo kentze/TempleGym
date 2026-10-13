@@ -49,9 +49,15 @@ export default function GauntletScreen() {
         const weightKg = parseFloat(weight);
         const repsNum = parseInt(reps, 10);
 
-        if (isNaN(weightKg) || repsNum <= 0) {
+        if (isNaN(weightKg) || weightKg <= 0) {
+            setError('Enter a valid weight.');
+
+            return;
+        }
+
+        if (isNaN(repsNum) || repsNum <= 0) {
             setError('Enter a valid rep count.');
-            
+
             return;
         }
 
@@ -74,10 +80,11 @@ export default function GauntletScreen() {
     }
 
     if (loading) {
-        return
-        <View style={styles.center}>
-            <ActivityIndicator color={Colors.primary} />
-        </View>
+        return (
+            <View style={styles.center}>
+                <ActivityIndicator color={Colors.primary} />
+            </View>
+        );
     }
 
     if (!data?.cycle) {
