@@ -67,6 +67,8 @@ model GauntletCycle {
   winnerId String?
   entries GauntletEntry[]
   createdAt DateTime @default(now())
+  minReps Int @default(4)
+  requiresWeight Boolean @default(true)
 
   exercise Exercise @relation(fields: [exerciseId], references: [id])
   winner User? @relation(fields: [winnerId], references: [id])
@@ -76,7 +78,7 @@ model GauntletEntry {
   id String @id @default(cuid())
   cycleId String
   userId String
-  weightKg Float
+  weightKg Float?
   reps Int
   status String @default("submitted")
   submittedAt DateTime @default(now())
