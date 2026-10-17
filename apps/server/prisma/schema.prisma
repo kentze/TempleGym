@@ -31,8 +31,9 @@ model User {
   updatedAt    DateTime @updatedAt
 
   workoutSessions WorkoutSession[]
+  gauntletEntries GauntletEntry[]
+  gauntletWins GauntletCycle[]
 }
-
 
 model OtpRequest {
   id        String    @id @default(cuid())
@@ -51,7 +52,41 @@ model Exercise {
   category     SessionType
   subCategory  String?
   muscleGroups String[]
+
   workoutExercises WorkoutExercise[]
+  gauntletCycles GauntletCycle[]
+}
+
+model GauntletCycle {
+  id  String @id @default(cuid())
+  label String
+  exerciseId String
+  startDate DateTime
+  endDate DateTime
+  status String
+  winnerId String?
+  entries GauntletEntry[]
+  createdAt DateTime @default(now())
+  minReps Int @default(4)
+  requiresWeight Boolean @default(true)
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id])
+  winner User? @relation(fields: [winnerId], references: [id])
+}
+
+model GauntletEntry {
+  id String @id @default(cuid())
+  cycleId String
+  userId String
+  weightKg Float?
+  reps Int
+  status String @default("submitted")
+  submittedAt DateTime @default(now())
+
+  cycle GauntletCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([cycleId, userId])
 }
 
 model WorkoutSession {

@@ -10,6 +10,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
+    "gauntlet:new": "tsx prisma/gauntlet-new.ts",
     "db:studio": "prisma studio",
     "test": "jest"
   },

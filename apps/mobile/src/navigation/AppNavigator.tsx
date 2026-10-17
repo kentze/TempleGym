@@ -27,10 +27,11 @@ import SessionLoggingScreen from '../screens/workout/SessionLoggingScreen';
 import HistoryScreen        from '../screens/history/HistoryScreen';
 import SessionDetailScreen  from '../screens/history/SessionDetailScreen';
 import LeaderboardScreen    from '../screens/leaderboard/LeaderboardScreen';
+import GauntletScreen       from '../screens/gauntlet/GauntletScreen';
 import StatsScreen          from '../screens/stats/StatsScreen';
 import SettingsScreen       from '../screens/settings/SettingsScreen';
-import AddRoutineScreen      from '../screens/routine/AddRoutineScreen';
-import ExercisePickerScreen  from '../screens/routine/ExercisePickerScreen';
+import AddRoutineScreen     from '../screens/routine/AddRoutineScreen';
+import ExercisePickerScreen from '../screens/routine/ExercisePickerScreen';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -49,6 +50,7 @@ export default function AppNavigator() {
           <Stack.Screen name="History"        component={HistoryScreen} />
           <Stack.Screen name="SessionDetail"  component={SessionDetailScreen} />
           <Stack.Screen name="Leaderboard"    component={LeaderboardScreen} />
+          <Stack.Screen name="Gauntlet"        component={GauntletScreen} />
           <Stack.Screen name="Stats"           component={StatsScreen} />
           <Stack.Screen name="Settings"       component={SettingsScreen} />
           <Stack.Screen name="AddRoutine"      component={AddRoutineScreen} />
