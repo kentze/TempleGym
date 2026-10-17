@@ -10,6 +10,16 @@ const router = Router();
 const MAX_ENTRIES_PER_CYCLE = 5;
 const TOP_ENTRIES_SHOWN = 8;
 
+// What we read from each entry. Written out because CI type-checks without a generated
+// Prisma client, so the database results are untyped there.
+interface EntryWithUser {
+    userId: string;
+    weightKg: number | null;
+    reps: number;
+    submittedAt: Date;
+    user: { email: string; leaderboardAnonymous: boolean };
+}
+
 // Only checks the types of the fields. The rules for this month's lift are
 // checked afterwards against the active cycle.
 const submitEntrySchema = z.object({
@@ -42,7 +52,7 @@ router.get('/current', requireAuth, async (req: Request, res: Response) => {
     });
 
     const ranked = rankGauntletEntries(
-        entries.map((e) => ({
+        entries.map((e: EntryWithUser) => ({
             userId: e.userId,
             username: formatGauntletUsername(e.user),
             weightKg: e.weightKg,
