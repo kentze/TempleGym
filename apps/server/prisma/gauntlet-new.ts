@@ -13,10 +13,19 @@ function getArg(name: string): string {
     return arg.slice(prefix.length);
 }
 
+function hasFlag(name: string): boolean {
+    return process.argv.includes(`--${name}`);
+}
+
 async function main() {
     const exerciseName = getArg('exercise');
     const startDate = new Date(getArg('start'));
     const endDate = new Date(getArg('end'));
+    const minReps = Number(getArg('min-reps'));
+    const requiresWeight = !hasFlag('no-weight');
+
+    if (!Number.isInteger(minReps) || minReps <= 0)
+        throw new Error('--min-reps must be a whole number of 1 or more');
 
     const exercise = await prisma.exercise.findUnique({
         where: { name: exerciseName }
@@ -25,7 +34,8 @@ async function main() {
     if (!exercise)
         throw new Error(`No exercise found named "${exerciseName}"`);
 
-    const label = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}`;
+    // The date is read as UTC, so the label must use UTC too, whatever timezone this runs in.
+    const label = `${startDate.getUTCFullYear()}-${String(startDate.getUTCMonth() + 1).padStart(2, '0')}`;
 
     await prisma.gauntletCycle.updateMany({ 
         where: { status: 'active' },
@@ -38,11 +48,14 @@ async function main() {
             exerciseId: exercise.id,
             startDate,
             endDate,
+            minReps,
+            requiresWeight,
             status: 'active',
         },
     });
 
     console.log(`Created Gauntlet cycle "${cycle.label}" for ${exercise.name} (${cycle.id})`);
+    console.log(`Rules: at least ${cycle.minReps} reps, weight ${cycle.requiresWeight ? 'required' : 'not used'}`);
 }
 
 main().catch((err) => {

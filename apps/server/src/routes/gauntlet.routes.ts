@@ -3,15 +3,18 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/auth.middleware';
 import { prisma } from '../utils/prisma';
-import { rankGauntletEntries, formatGauntletUsername } from '../services/gauntlet.service';
+import { rankGauntletEntries, formatGauntletUsername, validateGauntletEntry, splitTopEntries } from '../services/gauntlet.service';
 
 const router = Router();
 
 const MAX_ENTRIES_PER_CYCLE = 5;
+const TOP_ENTRIES_SHOWN = 8;
 
+// Only checks the types of the fields. The rules for this month's lift are
+// checked afterwards against the active cycle.
 const submitEntrySchema = z.object({
-    weightKg: z.number().positive().max(500),
-    reps: z.number().int().positive().max(100),
+    weightKg: z.number().optional(),
+    reps: z.number(),
 });
 
 // Keyed on the signed-in user, so it must run after requireAuth. Keying on the
@@ -24,14 +27,14 @@ const submitEntryLimiter = rateLimit({
 });
 
 // GET /gauntlet/current
-router.get('/current', requireAuth, async (_req: Request, res: Response) => {
+router.get('/current', requireAuth, async (req: Request, res: Response) => {
     const cycle = await prisma.gauntletCycle.findFirst({
         where: { status: 'active' },
         include: { exercise: true },
     });
 
     if (!cycle) 
-        return res.json({ cycle: null, entries: [] });
+        return res.json({ cycle: null, entries: [], myRank: null, myEntryCount: 0, maxEntries: MAX_ENTRIES_PER_CYCLE });
 
     const entries = await prisma.gauntletEntry.findMany({
         where: { cycleId: cycle.id },
@@ -48,6 +51,17 @@ router.get('/current', requireAuth, async (_req: Request, res: Response) => {
         }))
     );
 
+    // Show the top of the board, plus the student's own row if they are ranked below it.
+    const { top, myRank } = splitTopEntries(ranked, req.user!.id, TOP_ENTRIES_SHOWN);
+
+    // The ranking only keeps each student's best entry, so count their attempts separately.
+    const myEntryCount = await prisma.gauntletEntry.count({
+        where: {
+            cycleId: cycle.id,
+            userId: req.user!.id
+        },
+    });
+
     res.json({
         cycle: {
             id: cycle.id,
@@ -55,8 +69,13 @@ router.get('/current', requireAuth, async (_req: Request, res: Response) => {
             exercise: cycle.exercise.name,
             startDate: cycle.startDate,
             endDate: cycle.endDate,
+            minReps: cycle.minReps,
+            requiresWeight: cycle.requiresWeight,
         },
-        entries: ranked,
+        entries: top,
+        myRank,
+        myEntryCount,
+        maxEntries: MAX_ENTRIES_PER_CYCLE,
     });
 });
 
@@ -65,13 +84,22 @@ router.post('/entries', requireAuth, submitEntryLimiter, async (req: Request, re
     const parsed = submitEntrySchema.safeParse(req.body);
 
     if (!parsed.success)
-        return res.status(400).json({ error: parsed.error.flatten() });
+        return res.status(400).json({ error: 'Enter a valid weight and reps.' });
 
     const cycle = await prisma.gauntletCycle.findFirst({
         where: { status: 'active' } });
 
     if (!cycle)
         return res.status(400).json({ error: 'No active Gauntlet right now.'});
+
+    const ruleError = validateGauntletEntry(
+        { minReps: cycle.minReps, requiresWeight: cycle.requiresWeight },
+        parsed.data.weightKg,
+        parsed.data.reps
+    );
+
+    if (ruleError)
+        return res.status(400).json({ error: ruleError });
 
     const existingCount = await prisma.gauntletEntry.count({
         where: { 
@@ -84,11 +112,17 @@ router.post('/entries', requireAuth, submitEntryLimiter, async (req: Request, re
         return res.status(400).json({ error: `You have already submitted ${MAX_ENTRIES_PER_CYCLE} entries this cycle.`});
     }
 
+    // A reps-only cycle never stores a weight, even if an older app sent one.
+    let weightKg: number | null = null;
+
+    if (cycle.requiresWeight)
+        weightKg = parsed.data.weightKg ?? null;
+
     const entry = await prisma.gauntletEntry.create({
         data: {
             cycleId: cycle.id,
             userId: req.user!.id,
-            weightKg: parsed.data.weightKg,
+            weightKg: weightKg,
             reps: parsed.data.reps,
         },
     });
