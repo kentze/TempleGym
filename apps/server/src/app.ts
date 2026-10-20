@@ -8,7 +8,8 @@ import meRoutes          from './routes/me.routes';
 import exercisesRoutes   from './routes/exercises.routes';
 import workoutsRoutes    from './routes/workouts.routes';
 import leaderboardRoutes from './routes/leaderboard.routes';
-import { errorHandler } from './middleware/error.middleware';
+import gauntletRoutes    from './routes/gauntlet.routes';
+import { errorHandler }  from './middleware/error.middleware';
 
 export function createApp() {
   const app = express();
@@ -25,6 +26,7 @@ export function createApp() {
   app.use('/exercises',   exercisesRoutes);
   app.use('/workouts',    workoutsRoutes);
   app.use('/leaderboard', leaderboardRoutes);
+  app.use('/gauntlet',    gauntletRoutes);
   app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
   app.use(errorHandler);

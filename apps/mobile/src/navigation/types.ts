@@ -18,6 +18,7 @@ export type MainStackParamList = {
   History:         undefined;
   SessionDetail:   { session: WorkoutSession };
   Leaderboard:     undefined;
+  Gauntlet:        undefined;
   Stats:           undefined;
   Settings:        undefined;
   AddRoutine:      { folderId: number | 'default'; folderName: string; editIndex?: number; initialName?: string; initialExercises?: Exercise[] };

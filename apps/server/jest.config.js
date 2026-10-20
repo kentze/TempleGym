@@ -12,6 +12,7 @@ module.exports = {
     'src/services/jwt.service.ts',
     'src/services/gps.service.ts',
     'src/services/otp.service.ts',
+    'src/services/gauntlet.service.ts',
     'src/utils/haversine.ts',
     'src/utils/weekLabel.ts',
   ],
