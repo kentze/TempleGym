@@ -1055,7 +1055,6 @@ const styles = StyleSheet.create({
   },
   // Horizontal scroll cards (Start a Session)
   startWorkoutButton: {
-    marginVertical: 4,
     flexDirection: "row",
     backgroundColor: Colors.primary,
     borderRadius: 14,
