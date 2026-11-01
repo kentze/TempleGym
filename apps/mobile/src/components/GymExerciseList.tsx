@@ -12,6 +12,16 @@ export function gymName(gymId: string): string {
   return GYM_NAMES[gymId] ?? GYM_NAMES.city;
 }
 
+// The group an exercise is listed under, e.g. Chest, Back, Legs
+export function groupName(exercise: Exercise): string {
+  return exercise.muscleGroups[0] ?? 'Other';
+}
+
+// Every group present in the given exercises, in the order the list shows them
+export function groupNames(exercises: Exercise[]): string[] {
+  return [...new Set(exercises.map(groupName))].sort((a, b) => a.localeCompare(b));
+}
+
 interface Props {
   exercises: Exercise[];
   onSelect: (exercise: Exercise) => void;
@@ -23,7 +33,7 @@ export default function GymExerciseList({ exercises, onSelect, emptyText }: Prop
   const sections = useMemo(() => {
     const groups = new Map<string, Exercise[]>();
     for (const ex of exercises) {
-      const key = ex.muscleGroups[0] ?? 'Other';
+      const key = groupName(ex);
       groups.set(key, [...(groups.get(key) ?? []), ex]);
     }
     return [...groups.entries()]

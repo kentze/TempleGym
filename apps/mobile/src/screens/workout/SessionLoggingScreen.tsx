@@ -11,7 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import LogoLoader from '../../components/LogoLoader';
-import GymExerciseList, { gymName } from '../../components/GymExerciseList';
+import GymExerciseList, { gymName, groupName, groupNames } from '../../components/GymExerciseList';
+import MuscleGroupFilter from '../../components/MuscleGroupFilter';
 import SimpleExerciseList from '../../components/SimpleExerciseList';
 import { isSimpleExercise } from '../../constants/simpleExercises';
 import { useNavigation } from '@react-navigation/native';
@@ -42,6 +43,7 @@ export default function SessionLoggingScreen() {
   const [pickerVisible, setPickerVisible]        = useState(false);
   const [pickerLoading, setPickerLoading]        = useState(false);
   const [pickerTab, setPickerTab]                = useState<'simple' | 'detailed'>('simple');
+  const [pickerFilter, setPickerFilter]          = useState('All');
   const [setInputs, setSetInputs]                = useState<Record<string, SetInputs>>({});
   const [error, setError]                        = useState<string | null>(null);
 
@@ -133,6 +135,11 @@ export default function SessionLoggingScreen() {
   const pickable = availableExercises.filter((e) => !addedIds.has(e.id));
   const simplePickable   = pickable.filter(isSimpleExercise);
   const detailedPickable = pickable.filter((e) => !isSimpleExercise(e));
+  const filterOptions    = groupNames(detailedPickable);
+  const activeFilter     = filterOptions.includes(pickerFilter) ? pickerFilter : 'All';
+  const detailedShown    = activeFilter === 'All'
+    ? detailedPickable
+    : detailedPickable.filter((e) => groupName(e) === activeFilter);
   const simpleMissing    = availableExercises.length > 0 && !availableExercises.some(isSimpleExercise);
 
   return (
@@ -235,6 +242,13 @@ export default function SessionLoggingScreen() {
               </TouchableOpacity>
             ))}
           </View>
+          {pickerTab === 'detailed' && !pickerLoading && (
+            <MuscleGroupFilter
+              options={filterOptions}
+              value={activeFilter}
+              onChange={setPickerFilter}
+            />
+          )}
           {pickerLoading
             ? <LogoLoader />
             : pickerTab === 'simple'
@@ -246,7 +260,8 @@ export default function SessionLoggingScreen() {
                     emptyText="All simple options already added."
                   />
               : <GymExerciseList
-                  exercises={detailedPickable}
+                  key={activeFilter}
+                  exercises={detailedShown}
                   onSelect={handlePickExercise}
                   emptyText="All exercises already added."
                 />
