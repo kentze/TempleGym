@@ -388,9 +388,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Gym */}
-        <GymTabs value={user?.gymId ?? "city"} onChange={handleSelectGym} />
-
         {/* Today's Workout */}
         <View style={styles.todayHeader}>
           <Text style={styles.sectionLabel}>Today's Workout</Text>
@@ -399,6 +396,11 @@ export default function HomeScreen() {
               <Text style={styles.infoBtnText}>?</Text>
             </View>
           </TouchableOpacity>
+          <GymTabs
+            value={user?.gymId ?? "city"}
+            onChange={handleSelectGym}
+            style={{ marginLeft: "auto" }}
+          />
         </View>
         {/* Start workout */}
         <TouchableOpacity
