@@ -27,11 +27,8 @@ export default function MuscleGroupFilter({ options, value, onChange }: Props) {
         onLayout={(e) => setBarBottom(e.nativeEvent.layout.y + e.nativeEvent.layout.height)}
       >
         <TouchableOpacity style={styles.button} onPress={() => setOpen((o) => !o)} activeOpacity={0.8}>
-          <Text style={styles.label}>Muscle group</Text>
-          <View style={styles.valueRow}>
-            <Text style={styles.value}>{value}</Text>
-            <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.textMuted} />
-          </View>
+          <Text style={styles.value}>{value}</Text>
+          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.textMuted} />
         </TouchableOpacity>
       </View>
 
@@ -76,8 +73,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
-  label: { fontSize: 13, color: Colors.textMuted },
-  valueRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   value: { fontSize: 15, fontWeight: '600', color: Colors.text },
   backdrop: {
     position: 'absolute',
