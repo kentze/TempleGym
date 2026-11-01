@@ -1,15 +1,11 @@
 import { useMemo } from 'react';
 import { Text, TouchableOpacity, StyleSheet, SectionList } from 'react-native';
 import { Colors } from '../constants/colors';
+import { GYMS } from '../constants/gyms';
 import type { Exercise } from '@templegym/types';
 
-const GYM_NAMES: Record<string, string> = {
-  city:     'City Campus',
-  hillside: 'Hillside',
-};
-
 export function gymName(gymId: string): string {
-  return GYM_NAMES[gymId] ?? GYM_NAMES.city;
+  return (GYMS.find((g) => g.id === gymId) ?? GYMS[0]).name;
 }
 
 // The group an exercise is listed under, e.g. Chest, Back, Legs

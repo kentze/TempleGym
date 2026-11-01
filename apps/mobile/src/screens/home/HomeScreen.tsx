@@ -20,6 +20,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants/colors";
 import { api } from "../../services/api";
+import GymTabs from "../../components/GymTabs";
+import type { GymId } from "../../constants/gyms";
 import { useAuthStore } from "../../store/auth.store";
 import { useWorkoutStore } from "../../store/workout.store";
 import { useRoutinesStore } from "../../store/routines.store";
@@ -27,6 +29,7 @@ import type { MainStackParamList } from "../../navigation/types";
 import type {
   Exercise,
   SessionType,
+  UserProfile,
   WorkoutSession,
   WorkoutsListResponse,
 } from "@templegym/types";
@@ -282,6 +285,18 @@ export default function HomeScreen() {
     navigation.navigate("SessionLogging");
   }
 
+  async function handleSelectGym(gymId: GymId) {
+    if (!user || (user.gymId ?? "city") === gymId) return;
+    const previous = user;
+    setUser({ ...user, gymId });
+    try {
+      const { data } = await api.patch<UserProfile>("/me/profile", { gymId });
+      setUser(data);
+    } catch {
+      setUser(previous);
+    }
+  }
+
   function handleStartRoutine(exercises: Exercise[]) {
     setPlanVisible(false);
     setRoutineExpanded(false);
@@ -373,15 +388,8 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Start workout */}
-        <TouchableOpacity
-          style={styles.startWorkoutButton}
-          onPress={() => handleStart("FULL_BODY")}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add-circle" size={24} color="#fff" />
-          <Text style={styles.startWorkoutText}>Start Workout</Text>
-        </TouchableOpacity>
+        {/* Gym */}
+        <GymTabs value={user?.gymId ?? "city"} onChange={handleSelectGym} />
 
         {/* Today's Workout */}
         <View style={styles.todayHeader}>
@@ -392,6 +400,16 @@ export default function HomeScreen() {
             </View>
           </TouchableOpacity>
         </View>
+        {/* Start workout */}
+        <TouchableOpacity
+          style={styles.startWorkoutButton}
+          onPress={() => handleStart("FULL_BODY")}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add-circle" size={24} color="#fff" />
+          <Text style={styles.startWorkoutText}>Start Workout</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.ghostCard}
           onPress={() => setPlanVisible(true)}
