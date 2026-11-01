@@ -118,9 +118,12 @@ export default function HomeScreen() {
     replaceRoutineItem,
     deleteFolder,
     deleteDefaultFolder,
+    renameFolder,
+    renameDefaultFolder,
     _defaultHidden,
+    _defaultName,
   } = useRoutinesStore();
-  const defaultRoutineName = "My Routine";
+  const defaultRoutineName = _defaultName;
 
   const [lastWorkout, setLastWorkout] = useState<WorkoutSession | null>(null);
   const [infoVisible, setInfoVisible] = useState(false);
@@ -128,6 +131,11 @@ export default function HomeScreen() {
   const [routineExpanded, setRoutineExpanded] = useState(false);
   const [folderVisible, setFolderVisible] = useState(false);
   const [newRoutineName, setNewRoutineName] = useState("");
+  // Which folder is being renamed, and the name typed so far
+  const [renameTarget, setRenameTarget] = useState<number | "default" | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  // Selects the whole old name when the popup opens, so typing replaces it
+  const [renameSelection, setRenameSelection] = useState<{ start: number; end: number } | undefined>();
 
   // 3-dot card popup: key is `"folderId:itemIndex"`
   const [cardMenuKey, setCardMenuKey] = useState<string | null>(null);
@@ -163,6 +171,20 @@ export default function HomeScreen() {
     if (!name) return;
     addFolder(name);
     setFolderVisible(false);
+  }
+
+  function openRename(id: number | "default", currentName: string) {
+    setRenameValue(currentName);
+    setRenameSelection({ start: 0, end: currentName.length });
+    setRenameTarget(id);
+  }
+
+  function handleConfirmRename() {
+    const name = renameValue.trim();
+    if (!name || renameTarget === null) return;
+    if (renameTarget === "default") renameDefaultFolder(name);
+    else renameFolder(renameTarget, name);
+    setRenameTarget(null);
   }
 
   // Folders are deleted with a long press, as long as at least one folder is left
@@ -473,7 +495,15 @@ export default function HomeScreen() {
                   color={Colors.textMuted}
                 />
               </View>
-              <Text style={styles.routinesTitle}>{routine.name}</Text>
+              <View style={styles.routinesTitleWrap}>
+                <Text style={styles.routinesTitle} numberOfLines={1}>{routine.name}</Text>
+                <TouchableOpacity
+                  onPress={() => openRename(routine.id, routine.name)}
+                  hitSlop={10}
+                >
+                  <Ionicons name="pencil" size={17} color={Colors.textMuted} />
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 onPress={() =>
                   navigation.navigate("AddRoutine", {
@@ -563,7 +593,15 @@ export default function HomeScreen() {
                 color={Colors.textMuted}
               />
             </View>
-            <Text style={styles.routinesTitle}>{defaultRoutineName}</Text>
+            <View style={styles.routinesTitleWrap}>
+              <Text style={styles.routinesTitle} numberOfLines={1}>{defaultRoutineName}</Text>
+              <TouchableOpacity
+                onPress={() => openRename("default", defaultRoutineName)}
+                hitSlop={10}
+              >
+                <Ionicons name="pencil" size={17} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               onPress={() =>
                 navigation.navigate("AddRoutine", {
@@ -831,6 +869,56 @@ export default function HomeScreen() {
             </View>
           </Pressable>
         </Modal>
+
+        {/* Rename Folder Modal */}
+        <Modal visible={renameTarget !== null} transparent animationType="fade">
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setRenameTarget(null)}
+          >
+            <Pressable style={styles.modalCard} onPress={() => {}}>
+              <Text style={styles.modalTitle}>Rename Routine</Text>
+              <TextInput
+                style={styles.folderInput}
+                placeholder="Routine name"
+                placeholderTextColor={Colors.textMuted}
+                value={renameValue}
+                onChangeText={(text) => {
+                  setRenameSelection(undefined);
+                  setRenameValue(text);
+                }}
+                selection={renameSelection}
+                onSelectionChange={(e) => {
+                  const { start, end } = e.nativeEvent.selection;
+                  if (renameSelection && (start !== renameSelection.start || end !== renameSelection.end)) {
+                    setRenameSelection(undefined);
+                  }
+                }}
+                autoFocus
+                selectTextOnFocus
+                maxLength={30}
+                onSubmitEditing={handleConfirmRename}
+                returnKeyType="done"
+              />
+              <TouchableOpacity
+                style={[
+                  styles.modalClose,
+                  !renameValue.trim() && { opacity: 0.4 },
+                ]}
+                onPress={handleConfirmRename}
+                disabled={!renameValue.trim()}
+              >
+                <Text style={styles.modalCloseText}>Save</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.planCancelBtn}
+                onPress={() => setRenameTarget(null)}
+              >
+                <Text style={styles.planCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </ScrollView>
 
       {/* Temple-logo pull-to-refresh indicator */}
@@ -1067,8 +1155,14 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
   },
-  routinesTitle: {
+  routinesTitleWrap: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  routinesTitle: {
+    flexShrink: 1,
     fontSize: 15,
     fontWeight: "600",
     color: Colors.text,

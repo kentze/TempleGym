@@ -5,6 +5,14 @@ import type { SavedRoutine } from '../navigation/types';
 const k = (userId: string, key: string) => `${userId}_${key}`;
 const folderKey = (userId: string, id: number) => `${userId}_tg_folder_${id}`;
 
+export const DEFAULT_ROUTINE_NAME = 'My Routine';
+export const MAX_FOLDER_NAME = 30;
+
+// A folder name with the spaces around it removed, or an empty string when there is nothing left
+export function cleanFolderName(raw: string): string {
+  return raw.trim().slice(0, MAX_FOLDER_NAME);
+}
+
 export interface RoutineFolder {
   id:    number;
   name:  string;
@@ -18,6 +26,7 @@ interface RoutinesState {
   defaultItems:    SavedRoutine[];
   _defaultOpen:    boolean;
   _defaultHidden:  boolean;
+  _defaultName:    string;
   hydrated:        boolean;
 
   hydrate:              (userId: string) => Promise<void>;
@@ -26,6 +35,8 @@ interface RoutinesState {
   addToFolder:          (folderId: number, routine: SavedRoutine) => void;
   addToDefault:         (routine: SavedRoutine) => void;
   setDefaultOpen:       (open: boolean) => void;
+  renameFolder:         (id: number, name: string) => void;
+  renameDefaultFolder:  (name: string) => void;
   removeRoutineItem:    (folderId: number | 'default', index: number) => void;
   duplicateRoutineItem: (folderId: number | 'default', index: number) => void;
   replaceRoutineItem:   (folderId: number | 'default', index: number, routine: SavedRoutine) => void;
@@ -47,6 +58,7 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
   defaultItems:   [],
   _defaultOpen:   false,
   _defaultHidden: false,
+  _defaultName:   DEFAULT_ROUTINE_NAME,
   hydrated:       false,
 
   hydrate: async (userId) => {
@@ -67,6 +79,7 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
     // Load default items
     const defRaw    = await safe_get(k(userId, 'tg_default_items'));
     const defHidden = await safe_get(k(userId, 'tg_default_hidden'));
+    const defName   = await safe_get(k(userId, 'tg_default_name'));
 
     const defaultItems: SavedRoutine[] = defRaw ? JSON.parse(defRaw) : [];
 
@@ -77,6 +90,7 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
       // A routine list with nothing saved starts open so the empty message is visible
       _defaultOpen:   defaultItems.length === 0,
       _defaultHidden: defHidden === '1',
+      _defaultName:   cleanFolderName(defName ?? '') || DEFAULT_ROUTINE_NAME,
       hydrated: true,
     });
   },
@@ -131,6 +145,28 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
     const userId = get().userId ?? '';
     safe_set(k(userId, 'tg_default_open'), open ? '1' : '0');
     set({ _defaultOpen: open });
+  },
+
+  renameFolder: (id, name) => {
+    const userId = get().userId ?? '';
+    const clean  = cleanFolderName(name);
+    if (!clean) return;
+    set((s) => {
+      const next = s.folders.map((f) => {
+        if (f.id !== id) return f;
+        safe_set(folderKey(userId, id), JSON.stringify({ name: clean, open: f.open, items: f.items }));
+        return { ...f, name: clean };
+      });
+      return { folders: next };
+    });
+  },
+
+  renameDefaultFolder: (name) => {
+    const userId = get().userId ?? '';
+    const clean  = cleanFolderName(name);
+    if (!clean) return;
+    safe_set(k(userId, 'tg_default_name'), clean);
+    set({ _defaultName: clean });
   },
 
   removeRoutineItem: (folderId, index) => {
