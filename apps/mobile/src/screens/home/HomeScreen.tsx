@@ -579,10 +579,14 @@ export default function HomeScreen() {
           {_defaultOpen && (
             <View style={styles.routinesDropdown}>
               {defaultItems.length === 0 && (
-                <View style={styles.emptyPocket}>
-                  <Text style={styles.emptyPocketText}>
-                    Saved workout is currently empty
-                  </Text>
+                <View style={styles.emptyPocketWrap}>
+                  <View style={[styles.pocketCurve, styles.pocketCurveLeft]} />
+                  <View style={[styles.pocketCurve, styles.pocketCurveRight]} />
+                  <View style={styles.emptyPocket}>
+                    <Text style={styles.emptyPocketText}>
+                      Saved workout is currently empty
+                    </Text>
+                  </View>
                 </View>
               )}
               {defaultItems.map((item, i) => (
@@ -977,6 +981,10 @@ export default function HomeScreen() {
   );
 }
 
+// Size of the small curve where the My Routine header flows into the dashed pocket
+const POCKET_CURVE = 12;
+const POCKET_LINE = 1.5;
+
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   container: { flex: 1, backgroundColor: Colors.background },
@@ -1127,19 +1135,41 @@ const styles = StyleSheet.create({
   },
   routinesDropdown: { gap: 10 },
   routinesHeaderJoined: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
-  // A dashed U with no top line, hanging from the My Routine header
+  // A dashed U with no top line, hanging from the My Routine header. Two small curved
+  // shoulders carry the line from the header's bottom corners down into the dashed sides.
+  emptyPocketWrap: { marginBottom: 24 },
+  pocketCurve: {
+    position: "absolute",
+    top: 0,
+    width: POCKET_CURVE,
+    height: POCKET_CURVE,
+    borderColor: Colors.border,
+    borderStyle: "dashed",
+    borderTopWidth: POCKET_LINE,
+  },
+  pocketCurveLeft: {
+    left: 0,
+    borderRightWidth: POCKET_LINE,
+    borderTopRightRadius: POCKET_CURVE,
+  },
+  pocketCurveRight: {
+    right: 0,
+    borderLeftWidth: POCKET_LINE,
+    borderTopLeftRadius: POCKET_CURVE,
+  },
   emptyPocket: {
+    marginTop: POCKET_CURVE,
+    marginHorizontal: POCKET_CURVE - POCKET_LINE,
+    minHeight: 150,
     alignItems: "center",
+    justifyContent: "center",
     borderBottomLeftRadius: 14,
     borderBottomRightRadius: 14,
-    borderWidth: 1.5,
+    borderWidth: POCKET_LINE,
     borderTopWidth: 0,
     borderColor: Colors.border,
     borderStyle: "dashed",
-    paddingTop: 28,
-    paddingBottom: 52,
     paddingHorizontal: 16,
-    marginBottom: 20,
   },
   emptyPocketText: { fontSize: 14, color: Colors.textMuted },
   routineCard: {
