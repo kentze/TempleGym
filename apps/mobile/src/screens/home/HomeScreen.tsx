@@ -400,31 +400,15 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Start workout + exercise list */}
-        <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity
-            style={styles.startWorkoutButton}
-            onPress={() => handleStart("FULL_BODY")}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="add-circle" size={24} color="#fff" />
-            <Text style={styles.startWorkoutText}>Start Workout</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.showExercisesButton}
-            onPress={() => navigation.navigate("GymExercises")}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="fitness-outline" size={20} color={Colors.primary} />
-            <Text style={styles.showExercisesText}>Show exercises</Text>
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
-        </View>
+        {/* Start workout */}
+        <TouchableOpacity
+          style={styles.startWorkoutButton}
+          onPress={() => handleStart("FULL_BODY")}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add-circle" size={24} color="#fff" />
+          <Text style={styles.startWorkoutText}>Start Workout</Text>
+        </TouchableOpacity>
 
         {/* Routines */}
         <View style={styles.routinesSectionHeader}>
@@ -1050,11 +1034,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   // Horizontal scroll cards (Start a Session)
-  actionButtonsContainer: {
-    gap: 12,
-    marginVertical: 4,
-  },
   startWorkoutButton: {
+    marginVertical: 4,
     flexDirection: "row",
     backgroundColor: Colors.primary,
     borderRadius: 14,
@@ -1068,23 +1049,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   startWorkoutText: { color: "#fff", fontSize: 17, fontWeight: "700" },
-  showExercisesButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  showExercisesText: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.text,
-  },
   // Full-width session cards (plan picker modal)
   sessionCard: {
     flexDirection: "row",

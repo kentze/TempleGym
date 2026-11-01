@@ -24,7 +24,6 @@ function tierTint(pts: number): string | null {
 import HomeScreen           from '../screens/home/HomeScreen';
 import WorkoutScreen        from '../screens/workout/WorkoutScreen';
 import SessionLoggingScreen from '../screens/workout/SessionLoggingScreen';
-import GymExercisesScreen   from '../screens/gymexercises/GymExercisesScreen';
 import HistoryScreen        from '../screens/history/HistoryScreen';
 import SessionDetailScreen  from '../screens/history/SessionDetailScreen';
 import LeaderboardScreen    from '../screens/leaderboard/LeaderboardScreen';
@@ -48,7 +47,6 @@ export default function AppNavigator() {
           <Stack.Screen name="Home"           component={HomeScreen} />
           <Stack.Screen name="Workout"        component={WorkoutScreen} />
           <Stack.Screen name="SessionLogging" component={SessionLoggingScreen} />
-          <Stack.Screen name="GymExercises"   component={GymExercisesScreen} />
           <Stack.Screen name="History"        component={HistoryScreen} />
           <Stack.Screen name="SessionDetail"  component={SessionDetailScreen} />
           <Stack.Screen name="Leaderboard"    component={LeaderboardScreen} />

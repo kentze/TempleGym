@@ -5,13 +5,13 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  FlatList,
   Modal,
   ScrollView,
   ActivityIndicator,
   Alert,
 } from 'react-native';
 import LogoLoader from '../../components/LogoLoader';
+import GymExerciseList, { gymName } from '../../components/GymExerciseList';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,12 +29,6 @@ interface SetInputs {
   reps: string;
 }
 
-function formatElapsed(seconds: number): string {
-  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-  const s = (seconds % 60).toString().padStart(2, '0');
-  return `${m}:${s}`;
-}
-
 export default function SessionLoggingScreen() {
   const navigation    = useNavigation<Nav>();
   const insets        = useSafeAreaInsets();
@@ -42,7 +36,6 @@ export default function SessionLoggingScreen() {
   const preferMetric  = user?.preferMetric ?? true;
   const { activeSession, addExercise, addSet, endSession, isSubmitting, clearSession } = useWorkoutStore();
 
-  const [elapsed, setElapsed]                   = useState(0);
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
   const [pickerVisible, setPickerVisible]        = useState(false);
   const [pickerLoading, setPickerLoading]        = useState(false);
@@ -54,27 +47,20 @@ export default function SessionLoggingScreen() {
       navigation.goBack();
       return;
     }
-    const start   = activeSession.startedAt.getTime();
-    const tick    = () => setElapsed(Math.floor((Date.now() - start) / 1000));
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
   }, [activeSession]);
 
   const fetchExercises = useCallback(async () => {
     if (!activeSession) return;
     setPickerLoading(true);
     try {
-      const { data } = await api.get<Exercise[]>('/exercises', {
-        params: { sessionType: activeSession.type },
-      });
+      const { data } = await api.get<Exercise[]>('/exercises');
       setAvailableExercises(data);
     } catch {
       setError('Could not load exercises.');
     } finally {
       setPickerLoading(false);
     }
-  }, [activeSession?.type]);
+  }, [!!activeSession]);
 
   function openPicker() {
     if (availableExercises.length === 0) fetchExercises();
@@ -146,10 +132,7 @@ export default function SessionLoggingScreen() {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-        <View>
-          <Text style={styles.sessionType}>{activeSession.type} Session</Text>
-          <Text style={styles.timer}>{formatElapsed(elapsed)}</Text>
-        </View>
+        <Text style={styles.title}>Workout Session</Text>
         <TouchableOpacity onPress={handleDiscard}>
           <Text style={styles.discard}>Discard</Text>
         </TouchableOpacity>
@@ -221,7 +204,12 @@ export default function SessionLoggingScreen() {
       <Modal visible={pickerVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPickerVisible(false)}>
         <View style={styles.modal}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Add Exercise</Text>
+            <View>
+              <Text style={styles.modalTitle}>Add Exercise</Text>
+              <Text style={styles.modalSubtitle}>
+                Showing equipment for {gymName(user?.gymId ?? 'city')}
+              </Text>
+            </View>
             <TouchableOpacity onPress={() => setPickerVisible(false)}>
               <Text style={styles.modalClose}>Done</Text>
             </TouchableOpacity>
@@ -229,18 +217,10 @@ export default function SessionLoggingScreen() {
           {pickerLoading
             ? <LogoLoader />
             : (
-              <FlatList
-                data={pickable}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <TouchableOpacity style={styles.pickerRow} onPress={() => handlePickExercise(item)}>
-                    <View>
-                      <Text style={styles.pickerName}>{item.name}</Text>
-                      <Text style={styles.pickerMuscles}>{item.muscleGroups.join(', ')}</Text>
-                    </View>
-                  </TouchableOpacity>
-                )}
-                ListEmptyComponent={<Text style={styles.emptyText}>All exercises already added.</Text>}
+              <GymExerciseList
+                exercises={pickable}
+                onSelect={handlePickExercise}
+                emptyText="All exercises already added."
               />
             )
           }
@@ -253,8 +233,7 @@ export default function SessionLoggingScreen() {
 const styles = StyleSheet.create({
   container:          { flex: 1, backgroundColor: Colors.background },
   header:             { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  sessionType:        { fontSize: 13, color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
-  timer:              { fontSize: 32, fontWeight: '700', color: Colors.text, fontVariant: ['tabular-nums'] },
+  title:              { fontSize: 30, fontWeight: '700', color: Colors.text },
   discard:            { color: Colors.error, fontSize: 14 },
   error:              { color: Colors.error, fontSize: 13, textAlign: 'center', paddingHorizontal: 20, paddingTop: 8 },
   scroll:             { flex: 1 },
@@ -275,9 +254,6 @@ const styles = StyleSheet.create({
   modal:              { flex: 1, backgroundColor: Colors.background },
   modalHeader:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
   modalTitle:         { fontSize: 18, fontWeight: '700', color: Colors.text },
+  modalSubtitle:      { fontSize: 13, color: Colors.textMuted, marginTop: 2 },
   modalClose:         { color: Colors.primary, fontSize: 16 },
-  pickerRow:          { padding: 16, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  pickerName:         { fontSize: 16, color: Colors.text },
-  pickerMuscles:      { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
-  emptyText:          { textAlign: 'center', color: Colors.textMuted, marginTop: 32 },
 });
