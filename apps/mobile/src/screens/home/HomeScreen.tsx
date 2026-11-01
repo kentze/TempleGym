@@ -400,39 +400,31 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Start a Session */}
-        <Text style={styles.sectionLabel}>Start a Session</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.sessionCardsScroll}
-          contentContainerStyle={styles.sessionCardsContent}
-        >
-          {SESSION_CARDS.map((card) => (
-            <TouchableOpacity
-              key={card.type}
-              style={styles.sessionScrollCard}
-              onPress={() => handleStart(card.type)}
-              activeOpacity={0.75}
-            >
-              <View style={styles.sessionScrollCardAccent} />
-              <View style={styles.sessionScrollCardBody}>
-                <Text style={styles.sessionScrollCardLabel}>{card.label}</Text>
-                <Text style={styles.sessionScrollCardDesc}>{card.description}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {/* Start workout + exercise list */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={styles.startWorkoutButton}
+            onPress={() => handleStart("FULL_BODY")}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="add-circle" size={24} color="#fff" />
+            <Text style={styles.startWorkoutText}>Start Workout</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.showExercisesBtn}
-          onPress={() => navigation.navigate("GymExercises")}
-          activeOpacity={0.75}
-        >
-          <Ionicons name="barbell-outline" size={18} color={Colors.textMuted} />
-          <Text style={styles.showExercisesText}>Show exercises</Text>
-          <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.showExercisesButton}
+            onPress={() => navigation.navigate("GymExercises")}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="fitness-outline" size={20} color={Colors.primary} />
+            <Text style={styles.showExercisesText}>Show exercises</Text>
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color={Colors.textMuted}
+            />
+          </TouchableOpacity>
+        </View>
 
         {/* Routines */}
         <View style={styles.routinesSectionHeader}>
@@ -477,8 +469,8 @@ export default function HomeScreen() {
                 hitSlop={8}
               >
                 <Ionicons
-                  name="barbell-outline"
-                  size={20}
+                  name="add"
+                  size={24}
                   color={
                     glowingId === routine.id ? Colors.primary : Colors.textMuted
                   }
@@ -569,8 +561,8 @@ export default function HomeScreen() {
               hitSlop={8}
             >
               <Ionicons
-                name="barbell-outline"
-                size={20}
+                name="add"
+                size={24}
                 color={
                   glowingId === "default" ? Colors.primary : Colors.textMuted
                 }
@@ -1058,42 +1050,41 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   // Horizontal scroll cards (Start a Session)
-  showExercisesBtn: {
+  actionButtonsContainer: {
+    gap: 12,
+    marginVertical: 4,
+  },
+  startWorkoutButton: {
+    flexDirection: "row",
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  startWorkoutText: { color: "#fff", fontSize: 17, fontWeight: "700" },
+  showExercisesButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  showExercisesText: { flex: 1, fontSize: 14, color: Colors.text },
-  sessionCardsScroll: { marginHorizontal: -20 },
-  sessionCardsContent: {
-    flexDirection: "row",
-    gap: 10,
-    paddingHorizontal: 20,
-  },
-  sessionScrollCard: {
-    width: 130,
     backgroundColor: Colors.surface,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: Colors.border,
-    overflow: "hidden",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    gap: 12,
   },
-  sessionScrollCardAccent: {
-    height: 4,
-    backgroundColor: Colors.primary,
+  showExercisesText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.text,
   },
-  sessionScrollCardBody: {
-    padding: 12,
-    gap: 4,
-  },
-  sessionScrollCardLabel: { fontSize: 15, fontWeight: "700", color: Colors.text },
-  sessionScrollCardDesc: { fontSize: 12, color: Colors.textMuted },
   // Full-width session cards (plan picker modal)
   sessionCard: {
     flexDirection: "row",
