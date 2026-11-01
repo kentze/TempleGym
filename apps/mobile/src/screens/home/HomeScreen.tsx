@@ -576,6 +576,13 @@ export default function HomeScreen() {
 
           {_defaultOpen && (
             <View style={styles.routinesDropdown}>
+              {defaultItems.length === 0 && (
+                <View style={styles.emptyPocket}>
+                  <Text style={styles.emptyPocketText}>
+                    Saved workout is currently empty
+                  </Text>
+                </View>
+              )}
               {defaultItems.map((item, i) => (
                 <View key={i} style={styles.routineCard}>
                   <View style={styles.routineCardHeader}>
@@ -1117,6 +1124,16 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   routinesDropdown: { gap: 10 },
+  emptyPocket: {
+    alignItems: "center",
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderStyle: "dashed",
+    paddingVertical: 22,
+    paddingHorizontal: 16,
+  },
+  emptyPocketText: { fontSize: 14, color: Colors.textMuted },
   routineCard: {
     backgroundColor: Colors.surface,
     borderRadius: 14,

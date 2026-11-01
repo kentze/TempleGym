@@ -68,11 +68,14 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
     const defRaw    = await safe_get(k(userId, 'tg_default_items'));
     const defHidden = await safe_get(k(userId, 'tg_default_hidden'));
 
+    const defaultItems: SavedRoutine[] = defRaw ? JSON.parse(defRaw) : [];
+
     set({
       userId,
       folders,
-      defaultItems:   defRaw ? JSON.parse(defRaw) : [],
-      _defaultOpen:   false,
+      defaultItems,
+      // A routine list with nothing saved starts open so the empty message is visible
+      _defaultOpen:   defaultItems.length === 0,
       _defaultHidden: defHidden === '1',
       hydrated: true,
     });
