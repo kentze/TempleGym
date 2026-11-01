@@ -44,13 +44,6 @@ export default function SessionDetailScreen() {
             <Text style={styles.statValue}>{session.pointsEarned}</Text>
             <Text style={styles.statLabel}>pts</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.stat}>
-            <Text style={[styles.statValue, { color: session.gpsVerified ? Colors.success : Colors.textMuted }]}>
-              {session.gpsVerified ? 'Yes' : 'No'}
-            </Text>
-            <Text style={styles.statLabel}>GPS</Text>
-          </View>
         </View>
 
         {session.exercises.map((ex: { id: string; exerciseId: string; exercise?: { name: string }; sets: unknown }) => (
