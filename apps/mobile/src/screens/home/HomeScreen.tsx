@@ -17,11 +17,12 @@ import {
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RouteProp } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants/colors";
 import { api } from "../../services/api";
 import GymTabs from "../../components/GymTabs";
+import EmptyRoutinePocket from "../../components/EmptyRoutinePocket";
 import type { GymId } from "../../constants/gyms";
 import { useAuthStore } from "../../store/auth.store";
 import { useWorkoutStore } from "../../store/workout.store";
@@ -471,104 +472,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {folders.map((routine) => (
-          <View key={routine.id} style={styles.routineGroup}>
-            <TouchableOpacity
-              style={styles.routinesHeader}
-              onPress={() => {
-                LayoutAnimation.configureNext(
-                  LayoutAnimation.Presets.easeInEaseOut,
-                );
-                toggleFolder(routine.id);
-              }}
-              onLongPress={() => confirmDeleteFolder(routine.id, routine.name)}
-              activeOpacity={0.75}
-            >
-              <View
-                style={{
-                  transform: [{ rotate: routine.open ? "90deg" : "0deg" }],
-                }}
-              >
-                <Ionicons
-                  name="chevron-forward"
-                  size={18}
-                  color={Colors.textMuted}
-                />
-              </View>
-              <View style={styles.routinesTitleWrap}>
-                <Text style={styles.routinesTitle} numberOfLines={1}>{routine.name}</Text>
-                <TouchableOpacity
-                  onPress={() => openRename(routine.id, routine.name)}
-                  hitSlop={10}
-                >
-                  <Ionicons name="pencil" size={17} color={Colors.textMuted} />
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("AddRoutine", {
-                    folderId: routine.id,
-                    folderName: routine.name,
-                  })
-                }
-                hitSlop={8}
-              >
-                <Ionicons name="add" size={24} color={Colors.textMuted} />
-              </TouchableOpacity>
-            </TouchableOpacity>
-
-            {routine.open && (
-              <View style={styles.routinesDropdown}>
-                {routine.items.map((item, i) => (
-                  <View key={i} style={styles.routineCard}>
-                    <View style={styles.routineCardHeader}>
-                      <Text style={styles.routineCardType}>{item.name}</Text>
-                      <TouchableOpacity
-                        onPress={(e) =>
-                          openCardMenu(routine.id, i, e.nativeEvent.pageY)
-                        }
-                        hitSlop={8}
-                      >
-                        <Ionicons
-                          name="ellipsis-horizontal"
-                          size={18}
-                          color={Colors.textMuted}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                    <Text style={styles.routineCardCount}>
-                      {item.exercises.length} exercise
-                      {item.exercises.length !== 1 ? "s" : ""}
-                    </Text>
-                    {item.exercises.length === 0 ? (
-                      <Text style={styles.routineCardEmpty}>No exercises</Text>
-                    ) : (
-                      item.exercises.map((ex, idx, arr) => (
-                        <Text
-                          key={`${ex.id}-${idx}`}
-                          style={
-                            idx === arr.length - 1
-                              ? styles.routineCardLastEx
-                              : styles.routineCardExercise
-                          }
-                        >
-                          {ex.name}
-                        </Text>
-                      ))
-                    )}
-                    <TouchableOpacity
-                      style={styles.routineCardStart}
-                      onPress={() => handleStartRoutine(item.exercises)}
-                    >
-                      <Text style={styles.routineCardStartText}>Start</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-        ))}
-
         {/* Default My Routine */}
         {!_defaultHidden && <View style={[styles.routineGroup, defaultEmptyOpen && { gap: 0 }]}>
           <TouchableOpacity
@@ -599,7 +502,7 @@ export default function HomeScreen() {
                 onPress={() => openRename("default", defaultRoutineName)}
                 hitSlop={10}
               >
-                <Ionicons name="pencil" size={17} color={Colors.textMuted} />
+                <MaterialCommunityIcons name="pencil" size={20} color={Colors.textMuted} />
               </TouchableOpacity>
             </View>
             <TouchableOpacity
@@ -617,13 +520,7 @@ export default function HomeScreen() {
 
           {_defaultOpen && (
             <View style={styles.routinesDropdown}>
-              {defaultItems.length === 0 && (
-                <View style={styles.emptyPocket}>
-                  <Text style={styles.emptyPocketText}>
-                    Saved workout is currently empty
-                  </Text>
-                </View>
-              )}
+              {defaultItems.length === 0 && <EmptyRoutinePocket />}
               {defaultItems.map((item, i) => (
                 <View key={i} style={styles.routineCard}>
                   <View style={styles.routineCardHeader}>
@@ -672,6 +569,108 @@ export default function HomeScreen() {
             </View>
           )}
         </View>}
+
+        {folders.map((routine) => {
+          const emptyOpen = routine.open && routine.items.length === 0;
+          return (
+          <View key={routine.id} style={[styles.routineGroup, emptyOpen && { gap: 0 }]}>
+            <TouchableOpacity
+              style={[styles.routinesHeader, emptyOpen && styles.routinesHeaderJoined]}
+              onPress={() => {
+                LayoutAnimation.configureNext(
+                  LayoutAnimation.Presets.easeInEaseOut,
+                );
+                toggleFolder(routine.id);
+              }}
+              onLongPress={() => confirmDeleteFolder(routine.id, routine.name)}
+              activeOpacity={0.75}
+            >
+              <View
+                style={{
+                  transform: [{ rotate: routine.open ? "90deg" : "0deg" }],
+                }}
+              >
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={Colors.textMuted}
+                />
+              </View>
+              <View style={styles.routinesTitleWrap}>
+                <Text style={styles.routinesTitle} numberOfLines={1}>{routine.name}</Text>
+                <TouchableOpacity
+                  onPress={() => openRename(routine.id, routine.name)}
+                  hitSlop={10}
+                >
+                  <MaterialCommunityIcons name="pencil" size={20} color={Colors.textMuted} />
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("AddRoutine", {
+                    folderId: routine.id,
+                    folderName: routine.name,
+                  })
+                }
+                hitSlop={8}
+              >
+                <Ionicons name="add" size={24} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </TouchableOpacity>
+
+            {routine.open && (
+              <View style={styles.routinesDropdown}>
+                {routine.items.length === 0 && <EmptyRoutinePocket />}
+                {routine.items.map((item, i) => (
+                  <View key={i} style={styles.routineCard}>
+                    <View style={styles.routineCardHeader}>
+                      <Text style={styles.routineCardType}>{item.name}</Text>
+                      <TouchableOpacity
+                        onPress={(e) =>
+                          openCardMenu(routine.id, i, e.nativeEvent.pageY)
+                        }
+                        hitSlop={8}
+                      >
+                        <Ionicons
+                          name="ellipsis-horizontal"
+                          size={18}
+                          color={Colors.textMuted}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={styles.routineCardCount}>
+                      {item.exercises.length} exercise
+                      {item.exercises.length !== 1 ? "s" : ""}
+                    </Text>
+                    {item.exercises.length === 0 ? (
+                      <Text style={styles.routineCardEmpty}>No exercises</Text>
+                    ) : (
+                      item.exercises.map((ex, idx, arr) => (
+                        <Text
+                          key={`${ex.id}-${idx}`}
+                          style={
+                            idx === arr.length - 1
+                              ? styles.routineCardLastEx
+                              : styles.routineCardExercise
+                          }
+                        >
+                          {ex.name}
+                        </Text>
+                      ))
+                    )}
+                    <TouchableOpacity
+                      style={styles.routineCardStart}
+                      onPress={() => handleStartRoutine(item.exercises)}
+                    >
+                      <Text style={styles.routineCardStartText}>Start</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+          );
+        })}
 
         {/* Info Modal */}
         <Modal visible={infoVisible} transparent animationType="fade">
@@ -1170,21 +1169,6 @@ const styles = StyleSheet.create({
   routinesDropdown: { gap: 10 },
   popupOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
   routinesHeaderJoined: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
-  // A dashed U with no top line, hanging from the My Routine header
-  emptyPocket: {
-    minHeight: 150,
-    alignItems: "center",
-    borderBottomLeftRadius: 14,
-    borderBottomRightRadius: 14,
-    borderWidth: 1.5,
-    borderTopWidth: 0,
-    borderColor: Colors.border,
-    borderStyle: "dashed",
-    paddingTop: 28,
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  emptyPocketText: { fontSize: 14, color: Colors.textMuted },
   routineCard: {
     backgroundColor: Colors.surface,
     borderRadius: 14,

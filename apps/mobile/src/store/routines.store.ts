@@ -72,9 +72,10 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
         const raw = await safe_get(folderKey(userId, id));
         if (!raw) return null;
         const f = JSON.parse(raw);
-        return { id, name: f.name, open: false, items: f.items ?? [] } as RoutineFolder;
+        const items = f.items ?? [];
+        return { id, name: f.name, open: items.length === 0, items } as RoutineFolder;
       })
-    ).then((arr) => arr.filter(Boolean) as RoutineFolder[]);
+    ).then((arr) => (arr.filter(Boolean) as RoutineFolder[]).sort((a, b) => a.id - b.id));
 
     // Load default items
     const defRaw    = await safe_get(k(userId, 'tg_default_items'));
@@ -98,12 +99,12 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
   addFolder: (name) => {
     const userId = get().userId ?? '';
     const id   = Date.now();
-    const folder: RoutineFolder = { id, name, open: false, items: [] };
+    const folder: RoutineFolder = { id, name, open: true, items: [] };
     set((s) => {
-      const next = [folder, ...s.folders];
+      const next = [...s.folders, folder];
       const ids  = next.map((f) => f.id);
       safe_set(k(userId, 'tg_folder_ids'), JSON.stringify(ids));
-      safe_set(folderKey(userId, id), JSON.stringify({ name, open: false, items: [] }));
+      safe_set(folderKey(userId, id), JSON.stringify({ name, open: true, items: [] }));
       return { folders: next };
     });
   },
