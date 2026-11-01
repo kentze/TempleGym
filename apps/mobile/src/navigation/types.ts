@@ -22,7 +22,6 @@ export type MainStackParamList = {
   Stats:           undefined;
   Settings:        undefined;
   AddRoutine:      { folderId: number | 'default'; folderName: string; editIndex?: number; initialName?: string; initialExercises?: Exercise[] };
-  ExercisePicker:  { onSelect: (exercise: Exercise) => void };
 };
 
 export type AuthScreenProps<T extends keyof AuthStackParamList> =

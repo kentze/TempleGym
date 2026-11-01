@@ -1,29 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Modal,
   ScrollView,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import LogoLoader from '../../components/LogoLoader';
-import GymExerciseList, { gymName, groupName, groupNames } from '../../components/GymExerciseList';
-import MuscleGroupFilter from '../../components/MuscleGroupFilter';
-import SimpleExerciseList from '../../components/SimpleExerciseList';
-import { isSimpleExercise } from '../../constants/simpleExercises';
+import ExercisePickerSheet from '../../components/ExercisePickerSheet';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
-import { api } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
 import { useWorkoutStore } from '../../store/workout.store';
 import type { MainStackParamList } from '../../navigation/types';
-import type { Exercise } from '@templegym/types';
 
 type Nav = NativeStackNavigationProp<MainStackParamList, 'SessionLogging'>;
 
@@ -39,11 +32,7 @@ export default function SessionLoggingScreen() {
   const preferMetric  = user?.preferMetric ?? true;
   const { activeSession, addExercise, addSet, endSession, isSubmitting, clearSession } = useWorkoutStore();
 
-  const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
   const [pickerVisible, setPickerVisible]        = useState(false);
-  const [pickerLoading, setPickerLoading]        = useState(false);
-  const [pickerTab, setPickerTab]                = useState<'simple' | 'detailed'>('simple');
-  const [pickerFilter, setPickerFilter]          = useState('All');
   const [setInputs, setSetInputs]                = useState<Record<string, SetInputs>>({});
   const [error, setError]                        = useState<string | null>(null);
 
@@ -53,29 +42,6 @@ export default function SessionLoggingScreen() {
       return;
     }
   }, [activeSession]);
-
-  const fetchExercises = useCallback(async () => {
-    if (!activeSession) return;
-    setPickerLoading(true);
-    try {
-      const { data } = await api.get<Exercise[]>('/exercises');
-      setAvailableExercises(data);
-    } catch {
-      setError('Could not load exercises.');
-    } finally {
-      setPickerLoading(false);
-    }
-  }, [!!activeSession]);
-
-  function openPicker() {
-    if (availableExercises.length === 0) fetchExercises();
-    setPickerVisible(true);
-  }
-
-  function handlePickExercise(exercise: Exercise) {
-    addExercise(exercise);
-    setPickerVisible(false);
-  }
 
   function updateSetInput(slotKey: string, field: keyof SetInputs, value: string) {
     setSetInputs((prev) => ({
@@ -132,16 +98,6 @@ export default function SessionLoggingScreen() {
   if (!activeSession) return null;
 
   const addedIds = new Set(activeSession.exercises.map((e) => e.exerciseId));
-  const pickable = availableExercises.filter((e) => !addedIds.has(e.id));
-  const simplePickable   = pickable.filter(isSimpleExercise);
-  const detailedPickable = pickable.filter((e) => !isSimpleExercise(e));
-  const filterOptions    = groupNames(detailedPickable);
-  const activeFilter     = filterOptions.includes(pickerFilter) ? pickerFilter : 'All';
-  const detailedShown    = activeFilter === 'All'
-    ? detailedPickable
-    : detailedPickable.filter((e) => groupName(e) === activeFilter);
-  const simpleMissing    = availableExercises.length > 0 && !availableExercises.some(isSimpleExercise);
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
@@ -196,7 +152,7 @@ export default function SessionLoggingScreen() {
           </View>
         ))}
 
-        <TouchableOpacity style={styles.addExerciseButton} onPress={openPicker}>
+        <TouchableOpacity style={styles.addExerciseButton} onPress={() => setPickerVisible(true)}>
           <Text style={styles.addExerciseText}>Add Exercise</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -214,60 +170,12 @@ export default function SessionLoggingScreen() {
         </TouchableOpacity>
       </View>
 
-      <Modal visible={pickerVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPickerVisible(false)}>
-        <View style={styles.modal}>
-          <View style={styles.modalHeader}>
-            <View>
-              <Text style={styles.modalTitle}>Add Exercise</Text>
-              <Text style={styles.modalSubtitle}>
-                {pickerTab === 'simple'
-                  ? "Pick what you're training today"
-                  : `Showing equipment for ${gymName(user?.gymId ?? 'city')}`}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => setPickerVisible(false)}>
-              <Text style={styles.modalClose}>Done</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.tabBar}>
-            {(['simple', 'detailed'] as const).map((tab) => (
-              <TouchableOpacity
-                key={tab}
-                style={[styles.tab, pickerTab === tab && styles.tabActive]}
-                onPress={() => setPickerTab(tab)}
-              >
-                <Text style={[styles.tabText, pickerTab === tab && styles.tabTextActive]}>
-                  {tab === 'simple' ? 'Simple' : 'Detailed'}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {pickerTab === 'detailed' && !pickerLoading && (
-            <MuscleGroupFilter
-              options={filterOptions}
-              value={activeFilter}
-              onChange={setPickerFilter}
-            />
-          )}
-          {pickerLoading
-            ? <LogoLoader />
-            : pickerTab === 'simple'
-              ? simpleMissing
-                ? <Text style={styles.emptyText}>Simple options are not set up yet. Use the Detailed tab.</Text>
-                : <SimpleExerciseList
-                    exercises={simplePickable}
-                    onSelect={handlePickExercise}
-                    emptyText="All simple options already added."
-                  />
-              : <GymExerciseList
-                  key={activeFilter}
-                  exercises={detailedShown}
-                  onSelect={handlePickExercise}
-                  emptyText="All exercises already added."
-                />
-          }
-        </View>
-      </Modal>
+      <ExercisePickerSheet
+        visible={pickerVisible}
+        onClose={() => setPickerVisible(false)}
+        onSelect={addExercise}
+        excludeIds={addedIds}
+      />
     </View>
   );
 }
@@ -293,15 +201,4 @@ const styles = StyleSheet.create({
   endButton:          { backgroundColor: Colors.primary, borderRadius: 12, paddingVertical: 16, alignItems: 'center' },
   endButtonDisabled:  { opacity: 0.6 },
   endButtonText:      { color: Colors.text, fontSize: 16, fontWeight: '700' },
-  modal:              { flex: 1, backgroundColor: Colors.background },
-  modalHeader:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  modalTitle:         { fontSize: 18, fontWeight: '700', color: Colors.text },
-  modalSubtitle:      { fontSize: 13, color: Colors.textMuted, marginTop: 2 },
-  modalClose:         { color: Colors.primary, fontSize: 16 },
-  tabBar:             { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: Colors.border },
-  tab:                { flex: 1, paddingVertical: 14, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabActive:          { borderBottomColor: Colors.primary },
-  tabText:            { fontSize: 15, fontWeight: '600', color: Colors.textMuted },
-  tabTextActive:      { color: Colors.text },
-  emptyText:          { textAlign: 'center', color: Colors.textMuted, marginTop: 40, paddingHorizontal: 20 },
 });

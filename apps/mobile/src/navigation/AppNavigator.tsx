@@ -31,7 +31,6 @@ import GauntletScreen       from '../screens/gauntlet/GauntletScreen';
 import StatsScreen          from '../screens/stats/StatsScreen';
 import SettingsScreen       from '../screens/settings/SettingsScreen';
 import AddRoutineScreen     from '../screens/routine/AddRoutineScreen';
-import ExercisePickerScreen from '../screens/routine/ExercisePickerScreen';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -54,7 +53,6 @@ export default function AppNavigator() {
           <Stack.Screen name="Stats"           component={StatsScreen} />
           <Stack.Screen name="Settings"       component={SettingsScreen} />
           <Stack.Screen name="AddRoutine"      component={AddRoutineScreen} />
-          <Stack.Screen name="ExercisePicker" component={ExercisePickerScreen} options={{ presentation: 'modal' }} />
         </Stack.Navigator>
       </View>
       <BottomTabBar />

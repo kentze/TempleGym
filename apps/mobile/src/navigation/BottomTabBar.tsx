@@ -15,7 +15,7 @@ const TABS: { key: string; label: string; iconOff: IoniconName; iconOn: IoniconN
   { key: 'Stats',       label: 'Stats',    iconOff: 'bar-chart-outline', iconOn: 'bar-chart' },
 ];
 
-const HIDDEN_ON = ['SessionLogging', 'SessionDetail', 'Workout', 'AddRoutine', 'ExercisePicker'];
+const HIDDEN_ON = ['SessionLogging', 'SessionDetail', 'Workout', 'AddRoutine'];
 
 function activeBase(name: string): string {
   if (name === 'Workout' || name === 'SessionLogging') return 'Home';

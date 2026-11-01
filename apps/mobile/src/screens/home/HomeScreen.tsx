@@ -12,6 +12,7 @@ import {
   Animated,
   LayoutAnimation,
   Dimensions,
+  Alert,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -127,9 +128,6 @@ export default function HomeScreen() {
   const [routineExpanded, setRoutineExpanded] = useState(false);
   const [folderVisible, setFolderVisible] = useState(false);
   const [newRoutineName, setNewRoutineName] = useState("");
-  const [glowingId, setGlowingId] = useState<number | "default" | null>(null);
-  const [popupId, setPopupId] = useState<number | "default" | null>(null);
-  const [popupTop, setPopupTop] = useState(0);
 
   // 3-dot card popup: key is `"folderId:itemIndex"`
   const [cardMenuKey, setCardMenuKey] = useState<string | null>(null);
@@ -167,11 +165,18 @@ export default function HomeScreen() {
     setFolderVisible(false);
   }
 
-  function handleBarbellPress(id: number | "default", pageY: number) {
-    setGlowingId(id);
-    setTimeout(() => setGlowingId(null), 600);
-    setPopupTop(pageY - 16);
-    setPopupId((prev) => (prev === id ? null : id));
+  // Folders are deleted with a long press, as long as at least one folder is left
+  function confirmDeleteFolder(id: number | "default", name: string) {
+    const visibleCount = folders.length + (_defaultHidden ? 0 : 1);
+    if (visibleCount <= 1) return;
+    Alert.alert(`Delete ${name}?`, "Everything saved in it will be removed.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => (id === "default" ? deleteDefaultFolder() : deleteFolder(id)),
+      },
+    ]);
   }
   const [refreshing, setRefreshing] = useState(false);
 
@@ -454,6 +459,7 @@ export default function HomeScreen() {
                 );
                 toggleFolder(routine.id);
               }}
+              onLongPress={() => confirmDeleteFolder(routine.id, routine.name)}
               activeOpacity={0.75}
             >
               <View
@@ -469,18 +475,15 @@ export default function HomeScreen() {
               </View>
               <Text style={styles.routinesTitle}>{routine.name}</Text>
               <TouchableOpacity
-                onPress={(e) =>
-                  handleBarbellPress(routine.id, e.nativeEvent.pageY)
+                onPress={() =>
+                  navigation.navigate("AddRoutine", {
+                    folderId: routine.id,
+                    folderName: routine.name,
+                  })
                 }
                 hitSlop={8}
               >
-                <Ionicons
-                  name="add"
-                  size={24}
-                  color={
-                    glowingId === routine.id ? Colors.primary : Colors.textMuted
-                  }
-                />
+                <Ionicons name="add" size={24} color={Colors.textMuted} />
               </TouchableOpacity>
             </TouchableOpacity>
 
@@ -546,6 +549,7 @@ export default function HomeScreen() {
               );
               setDefaultOpen(!_defaultOpen);
             }}
+            onLongPress={() => confirmDeleteFolder("default", defaultRoutineName)}
             activeOpacity={0.75}
           >
             <View
@@ -561,32 +565,25 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.routinesTitle}>{defaultRoutineName}</Text>
             <TouchableOpacity
-              onPress={(e) =>
-                handleBarbellPress("default", e.nativeEvent.pageY)
+              onPress={() =>
+                navigation.navigate("AddRoutine", {
+                  folderId: "default",
+                  folderName: defaultRoutineName,
+                })
               }
               hitSlop={8}
             >
-              <Ionicons
-                name="add"
-                size={24}
-                color={
-                  glowingId === "default" ? Colors.primary : Colors.textMuted
-                }
-              />
+              <Ionicons name="add" size={24} color={Colors.textMuted} />
             </TouchableOpacity>
           </TouchableOpacity>
 
           {_defaultOpen && (
             <View style={styles.routinesDropdown}>
               {defaultItems.length === 0 && (
-                <View style={styles.emptyPocketWrap}>
-                  <View style={[styles.pocketCurve, styles.pocketCurveLeft]} />
-                  <View style={[styles.pocketCurve, styles.pocketCurveRight]} />
-                  <View style={styles.emptyPocket}>
-                    <Text style={styles.emptyPocketText}>
-                      Saved workout is currently empty
-                    </Text>
-                  </View>
+                <View style={styles.emptyPocket}>
+                  <Text style={styles.emptyPocketText}>
+                    Saved workout is currently empty
+                  </Text>
                 </View>
               )}
               {defaultItems.map((item, i) => (
@@ -924,66 +921,9 @@ export default function HomeScreen() {
           );
         })()}
 
-      {/* Floating barbell popup — outside ScrollView so it overlays everything */}
-      {popupId !== null &&
-        (() => {
-          const isDefault    = popupId === "default";
-          const visibleCount = folders.length + (_defaultHidden ? 0 : 1);
-          const canDelete    = visibleCount > 1;
-          const folderName   = isDefault
-            ? defaultRoutineName
-            : (folders.find((f) => f.id === popupId)?.name ?? "");
-          return (
-            <Pressable
-              style={styles.popupOverlay}
-              onPress={() => setPopupId(null)}
-            >
-              <View style={[styles.barbellPopup, { top: popupTop }]}>
-                <TouchableOpacity
-                  style={styles.popupRow}
-                  onPress={() => {
-                    setPopupId(null);
-                    navigation.navigate("AddRoutine", {
-                      folderId: popupId!,
-                      folderName,
-                    });
-                  }}
-                  activeOpacity={0.75}
-                >
-                  <Ionicons name="add-circle-outline" size={16} color={Colors.primary} />
-                  <Text style={styles.barbellPopupText}>Add new routine</Text>
-                </TouchableOpacity>
-                {canDelete && (
-                  <>
-                    <View style={styles.popupDivider} />
-                    <TouchableOpacity
-                      style={styles.popupRow}
-                      onPress={() => {
-                        setPopupId(null);
-                        if (isDefault) {
-                          deleteDefaultFolder();
-                        } else {
-                          deleteFolder(popupId as number);
-                        }
-                      }}
-                      activeOpacity={0.75}
-                    >
-                      <Ionicons name="trash-outline" size={16} color={Colors.error} />
-                      <Text style={[styles.barbellPopupText, { color: Colors.error }]}>Delete folder</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-            </Pressable>
-          );
-        })()}
     </View>
   );
 }
-
-// Size of the small curve where the My Routine header flows into the dashed pocket
-const POCKET_CURVE = 12;
-const POCKET_LINE = 1.5;
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
@@ -1134,42 +1074,21 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   routinesDropdown: { gap: 10 },
+  popupOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
   routinesHeaderJoined: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
-  // A dashed U with no top line, hanging from the My Routine header. Two small curved
-  // shoulders carry the line from the header's bottom corners down into the dashed sides.
-  emptyPocketWrap: { marginBottom: 24 },
-  pocketCurve: {
-    position: "absolute",
-    top: 0,
-    width: POCKET_CURVE,
-    height: POCKET_CURVE,
-    borderColor: Colors.border,
-    borderStyle: "dashed",
-    borderTopWidth: POCKET_LINE,
-  },
-  pocketCurveLeft: {
-    left: 0,
-    borderRightWidth: POCKET_LINE,
-    borderTopRightRadius: POCKET_CURVE,
-  },
-  pocketCurveRight: {
-    right: 0,
-    borderLeftWidth: POCKET_LINE,
-    borderTopLeftRadius: POCKET_CURVE,
-  },
+  // A dashed U with no top line, hanging from the My Routine header
   emptyPocket: {
-    marginTop: POCKET_CURVE,
-    marginHorizontal: POCKET_CURVE - POCKET_LINE,
     minHeight: 150,
     alignItems: "center",
-    justifyContent: "center",
     borderBottomLeftRadius: 14,
     borderBottomRightRadius: 14,
-    borderWidth: POCKET_LINE,
+    borderWidth: 1.5,
     borderTopWidth: 0,
     borderColor: Colors.border,
     borderStyle: "dashed",
+    paddingTop: 28,
     paddingHorizontal: 16,
+    marginBottom: 24,
   },
   emptyPocketText: { fontSize: 14, color: Colors.textMuted },
   routineCard: {
@@ -1238,30 +1157,6 @@ const styles = StyleSheet.create({
   },
   modalCloseText: { color: Colors.text, fontSize: 15, fontWeight: "600" },
   planCardHighlight: { borderColor: Colors.primary },
-  popupOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
-  barbellPopup: {
-    position: "absolute",
-    right: 20,
-    backgroundColor: Colors.surface,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 5,
-  },
-  popupRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  popupDivider: { height: 1, backgroundColor: Colors.border },
-  barbellPopupText: { fontSize: 13, color: Colors.text, fontWeight: "500" },
   folderInput: {
     backgroundColor: Colors.background,
     borderWidth: 1,

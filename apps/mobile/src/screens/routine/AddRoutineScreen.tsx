@@ -16,6 +16,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import ExercisePickerSheet from '../../components/ExercisePickerSheet';
 import type { MainStackParamList } from '../../navigation/types';
 import type { Exercise } from '@templegym/types';
 
@@ -42,6 +43,7 @@ export default function AddRoutineScreen() {
   const [name, setName]           = useState(params?.initialName ?? '');
   const [exercises, setExercises] = useState<Exercise[]>(params?.initialExercises ?? []);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   // Y translation for the floating item
   const dragY = useRef(new Animated.Value(0)).current;
@@ -168,12 +170,6 @@ export default function AddRoutineScreen() {
     return prCacheRef.current.get(index)!;
   }
 
-  function handleAddExercise() {
-    navigation.navigate('ExercisePicker', {
-      onSelect: (exercise) => setExercises(prev => [...prev, exercise]),
-    });
-  }
-
   function removeExercise(index: number) {
     setExercises(prev => prev.filter((_, i) => i !== index));
   }
@@ -208,6 +204,10 @@ export default function AddRoutineScreen() {
         />
 
         <Text style={[styles.sectionLabel, styles.sectionSpacing]}>Workout Content</Text>
+
+        <TouchableOpacity style={styles.addExerciseBtn} onPress={() => setPickerVisible(true)} activeOpacity={0.75}>
+          <Text style={styles.addExerciseBtnText}>+ Exercise</Text>
+        </TouchableOpacity>
 
         {exercises.length === 0 ? (
           <View style={styles.emptyContent}>
@@ -251,12 +251,14 @@ export default function AddRoutineScreen() {
             })}
           </View>
         )}
-
-        <TouchableOpacity style={styles.addExerciseBtn} onPress={handleAddExercise} activeOpacity={0.75}>
-          <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
-          <Text style={styles.addExerciseBtnText}>+ Exercise</Text>
-        </TouchableOpacity>
       </ScrollView>
+
+      <ExercisePickerSheet
+        visible={pickerVisible}
+        onClose={() => setPickerVisible(false)}
+        onSelect={(exercise) => setExercises(prev => [...prev, exercise])}
+        excludeIds={new Set(exercises.map(e => e.id))}
+      />
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
@@ -301,7 +303,7 @@ const styles = StyleSheet.create({
   exerciseInfo:         { flex: 1, gap: 2 },
   exerciseName:         { fontSize: 15, fontWeight: '600', color: Colors.text },
   exerciseMuscles:      { fontSize: 12, color: Colors.textMuted },
-  addExerciseBtn:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1.5, borderColor: Colors.border, borderStyle: 'dashed', borderRadius: 12, paddingVertical: 14, marginTop: 4 },
+  addExerciseBtn:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1.5, borderColor: Colors.border, borderStyle: 'dashed', borderRadius: 12, paddingVertical: 14 },
   addExerciseBtnText:   { fontSize: 15, fontWeight: '600', color: Colors.primary },
   footer:               { padding: 16, paddingTop: 0, borderTopWidth: 1, borderTopColor: Colors.border },
   saveBtn:              { backgroundColor: Colors.primary, borderRadius: 12, paddingVertical: 16, alignItems: 'center' },
