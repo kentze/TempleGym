@@ -1,5 +1,7 @@
 // apps/server/src/data/gymWorkouts.ts
 
+import type { SessionType } from "@templegym/types";
+
 export type MuscleGroup = "Chest" | "Back" | "Shoulders" | "Tricep" | "Legs";
 
 export interface ExerciseItem {
@@ -107,3 +109,39 @@ export const GYM_WORKOUT_CATALOG: Record<string, ExerciseItem[]> = {
     { name: "Deadlift Assist", category: "Legs" },
   ],
 };
+
+export interface GymExercise {
+  name: string;
+  category: SessionType;
+  muscleGroups: string[];
+  gyms: string[];
+}
+
+const SESSION_TYPE_BY_MUSCLE_GROUP: Record<MuscleGroup, SessionType> = {
+  Chest: "PUSH",
+  Shoulders: "PUSH",
+  Tricep: "PUSH",
+  Back: "PULL",
+  Legs: "LEGS",
+};
+
+// One row per exercise, tagged with every gym that has it.
+export function buildGymExercises(): GymExercise[] {
+  const byName = new Map<string, GymExercise>();
+  for (const [gymId, items] of Object.entries(GYM_WORKOUT_CATALOG)) {
+    for (const item of items) {
+      const existing = byName.get(item.name);
+      if (existing) {
+        existing.gyms.push(gymId);
+        continue;
+      }
+      byName.set(item.name, {
+        name: item.name,
+        category: SESSION_TYPE_BY_MUSCLE_GROUP[item.category],
+        muscleGroups: [item.category === "Tricep" ? "Triceps" : item.category],
+        gyms: [gymId],
+      });
+    }
+  }
+  return [...byName.values()];
+}

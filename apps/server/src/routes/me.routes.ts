@@ -9,6 +9,7 @@ const updateProfileSchema = z.object({
   displayName:  z.string().min(2).max(30).optional(),
   heightCm:     z.number().int().min(100).max(250).optional(),
   weightKg:     z.number().min(20).max(300).optional(),
+  gymId:        z.enum(['city', 'hillside']).optional(),
   preferMetric:         z.boolean().optional(),
   leaderboardAnonymous: z.boolean().optional(),
 });

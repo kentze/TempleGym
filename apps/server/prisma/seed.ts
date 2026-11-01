@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { buildGymExercises } from '../src/data/gymWorkouts';
 
 const prisma = new PrismaClient();
 
@@ -53,8 +54,18 @@ async function main() {
     });
   }
 
+  // City and Hillside lists. Each exercise is tagged with the gyms that have it.
+  const gymExercises = buildGymExercises();
+  for (const ex of gymExercises) {
+    await prisma.exercise.upsert({
+      where:  { name: ex.name },
+      update: { gyms: ex.gyms },
+      create: ex,
+    });
+  }
+
   // Remove any exercises no longer in the list (that have no workout history)
-  const names = exercises.map((e) => e.name);
+  const names = [...exercises, ...gymExercises].map((e) => e.name);
   await prisma.exercise.deleteMany({
     where: {
       name:            { notIn: names },
