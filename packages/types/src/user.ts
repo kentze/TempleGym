@@ -4,7 +4,6 @@ export interface UserProfile {
   displayName: string | null;
   heightCm: number | null;
   weightKg: number | null;
-  gpsEnabled: boolean;
   preferMetric: boolean;
   leaderboardAnonymous: boolean;
   totalPoints: number;
@@ -16,7 +15,6 @@ export interface UpdateProfileBody {
   displayName?: string;
   heightCm?: number;
   weightKg?: number;
-  gpsEnabled?: boolean;
   preferMetric?: boolean;
   leaderboardAnonymous?: boolean;
 }

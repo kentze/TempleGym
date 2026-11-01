@@ -22,7 +22,6 @@ model User {
   displayName  String?
   heightCm     Int?
   weightKg     Float?
-  gpsEnabled           Boolean  @default(true)
   preferMetric         Boolean  @default(true)
   leaderboardAnonymous Boolean  @default(false)
   totalPoints  Int      @default(0)

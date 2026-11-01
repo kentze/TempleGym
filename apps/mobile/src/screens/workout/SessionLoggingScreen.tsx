@@ -19,7 +19,6 @@ import { Colors } from '../../constants/colors';
 import { api } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
 import { useWorkoutStore } from '../../store/workout.store';
-import { useGps } from '../../hooks/useGps';
 import type { MainStackParamList } from '../../navigation/types';
 import type { Exercise } from '@templegym/types';
 
@@ -42,7 +41,6 @@ export default function SessionLoggingScreen() {
   const user          = useAuthStore((s) => s.user);
   const preferMetric  = user?.preferMetric ?? true;
   const { activeSession, addExercise, addSet, endSession, isSubmitting, clearSession } = useWorkoutStore();
-  const { getCoords }  = useGps();
 
   const [elapsed, setElapsed]                   = useState(0);
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
@@ -125,14 +123,8 @@ export default function SessionLoggingScreen() {
       Alert.alert('No sets logged', 'Add at least one set before ending the session.');
       return;
     }
-    let lat: number | undefined;
-    let lng: number | undefined;
-    if (user?.gpsEnabled) {
-      const coords = await getCoords();
-      if (coords) { lat = coords.latitude; lng = coords.longitude; }
-    }
     try {
-      await endSession(lat, lng);
+      await endSession();
       navigation.goBack();
     } catch {
       setError('Failed to save session. Try again.');

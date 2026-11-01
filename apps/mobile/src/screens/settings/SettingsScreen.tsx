@@ -23,7 +23,6 @@ export default function SettingsScreen() {
   const { user, setUser, logout } = useAuthStore();
 
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
-  const [gpsEnabled, setGpsEnabled]               = useState(user?.gpsEnabled ?? true);
   const [preferMetric, setPreferMetric]             = useState(user?.preferMetric ?? true);
   const [leaderboardAnonymous, setLeaderboardAnonymous] = useState(user?.leaderboardAnonymous ?? false);
 
@@ -63,7 +62,6 @@ export default function SettingsScreen() {
     setSaving(true);
 
     const body: UpdateProfileBody = {
-      gpsEnabled,
       preferMetric,
       leaderboardAnonymous,
     };
@@ -168,19 +166,6 @@ export default function SettingsScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Preferences</Text>
-
-        <View style={styles.toggle}>
-          <View>
-            <Text style={styles.toggleLabel}>GPS check-in</Text>
-            <Text style={styles.toggleSub}>Earn +25 pts when at Owl Center</Text>
-          </View>
-          <Switch
-            value={gpsEnabled}
-            onValueChange={setGpsEnabled}
-            trackColor={{ true: Colors.primary }}
-            thumbColor={Colors.text}
-          />
-        </View>
 
         <View style={styles.toggle}>
           <View>
