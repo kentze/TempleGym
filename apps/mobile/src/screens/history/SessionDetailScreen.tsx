@@ -29,9 +29,6 @@ export default function SessionDetailScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.back}>‹ Back</Text>
         </TouchableOpacity>
-        <View style={[styles.badge, session.type === 'PUSH' ? styles.badgePush : styles.badgePull]}>
-          <Text style={styles.badgeText}>{session.type}</Text>
-        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -80,10 +77,6 @@ const styles = StyleSheet.create({
   container:    { flex: 1, backgroundColor: Colors.background },
   header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
   back:         { color: Colors.primary, fontSize: 16 },
-  badge:        { borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 },
-  badgePush:    { backgroundColor: `${Colors.primary}30` },
-  badgePull:    { backgroundColor: `${Colors.gold}20` },
-  badgeText:    { fontSize: 12, fontWeight: '700', color: Colors.text },
   content:      { padding: 20, gap: 16 },
   date:         { fontSize: 18, fontWeight: '600', color: Colors.text },
   statsRow:     { flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 16 },

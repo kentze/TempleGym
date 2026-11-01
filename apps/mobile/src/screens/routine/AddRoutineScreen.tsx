@@ -209,12 +209,7 @@ export default function AddRoutineScreen() {
           <Text style={styles.addExerciseBtnText}>+ Exercise</Text>
         </TouchableOpacity>
 
-        {exercises.length === 0 ? (
-          <View style={styles.emptyContent}>
-            <Ionicons name="barbell-outline" size={28} color={Colors.textMuted} />
-            <Text style={styles.emptyText}>No exercises added yet</Text>
-          </View>
-        ) : (
+        {exercises.length > 0 && (
           <View style={styles.exerciseList}>
             {exercises.map((ex, i) => {
               const isDragging = draggingIndex === i;
@@ -293,8 +288,6 @@ const styles = StyleSheet.create({
   sectionLabel:         { fontSize: 12, fontWeight: '600', color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.8 },
   sectionSpacing:       { marginTop: 12 },
   input:                { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, color: Colors.text, fontSize: 16, letterSpacing: 0 },
-  emptyContent:         { alignItems: 'center', paddingVertical: 24, gap: 8, backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border },
-  emptyText:            { fontSize: 13, color: Colors.textMuted },
   exerciseList:         { gap: 8 },
   exerciseRow:          { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 12, gap: 12 },
   exerciseRowDragging:  { borderColor: Colors.primary },

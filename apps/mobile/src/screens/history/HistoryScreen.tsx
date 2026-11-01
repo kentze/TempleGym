@@ -109,9 +109,6 @@ export default function HistoryScreen() {
             onPress={() => navigation.navigate('SessionDetail', { session: item })}
             activeOpacity={0.75}
           >
-            <View style={[styles.badge, item.type === 'PUSH' ? styles.badgePush : styles.badgePull]}>
-              <Text style={styles.badgeText}>{item.type}</Text>
-            </View>
             <View style={styles.rowInfo}>
               <Text style={styles.rowDate}>{formatDate(item.startedAt)}</Text>
               <Text style={styles.rowMeta}>{item.durationMinutes} min · {item.pointsEarned} pts</Text>
@@ -135,10 +132,6 @@ const styles = StyleSheet.create({
   retryButton: { paddingHorizontal: 20, paddingVertical: 8 },
   retryText:   { color: Colors.primary, fontSize: 14 },
   row:         { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 14, gap: 12, marginHorizontal: 16 },
-  badge:       { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
-  badgePush:   { backgroundColor: `${Colors.primary}30` },
-  badgePull:   { backgroundColor: `${Colors.gold}20` },
-  badgeText:   { fontSize: 11, fontWeight: '700', color: Colors.text },
   rowInfo:     { flex: 1, gap: 2 },
   rowDate:     { fontSize: 15, fontWeight: '600', color: Colors.text },
   rowMeta:     { fontSize: 12, color: Colors.textMuted },
