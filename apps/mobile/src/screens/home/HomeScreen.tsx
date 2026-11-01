@@ -306,6 +306,8 @@ export default function HomeScreen() {
 
   // All routine items across every folder (custom + default)
   const allRoutineItems = [...defaultItems, ...folders.flatMap((f) => f.items)];
+  // My Routine is open with nothing saved: the empty box hangs off the header
+  const defaultEmptyOpen = _defaultOpen && defaultItems.length === 0;
 
   return (
     <View style={styles.screen}>
@@ -535,9 +537,9 @@ export default function HomeScreen() {
         ))}
 
         {/* Default My Routine */}
-        {!_defaultHidden && <View style={styles.routineGroup}>
+        {!_defaultHidden && <View style={[styles.routineGroup, defaultEmptyOpen && { gap: 0 }]}>
           <TouchableOpacity
-            style={styles.routinesHeader}
+            style={[styles.routinesHeader, defaultEmptyOpen && styles.routinesHeaderJoined]}
             onPress={() => {
               LayoutAnimation.configureNext(
                 LayoutAnimation.Presets.easeInEaseOut,
@@ -1124,14 +1126,20 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   routinesDropdown: { gap: 10 },
+  routinesHeaderJoined: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
+  // A dashed U with no top line, hanging from the My Routine header
   emptyPocket: {
     alignItems: "center",
-    borderRadius: 14,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
     borderWidth: 1.5,
+    borderTopWidth: 0,
     borderColor: Colors.border,
     borderStyle: "dashed",
-    paddingVertical: 22,
+    paddingTop: 28,
+    paddingBottom: 52,
     paddingHorizontal: 16,
+    marginBottom: 20,
   },
   emptyPocketText: { fontSize: 14, color: Colors.textMuted },
   routineCard: {
