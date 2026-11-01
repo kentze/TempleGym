@@ -15,6 +15,7 @@ export type MainStackParamList = {
   Home:            { newRoutine?: SavedRoutine; replaceIndex?: number } | undefined;
   Workout:         undefined;
   SessionLogging:  undefined;
+  GymExercises:    undefined;
   History:         undefined;
   SessionDetail:   { session: WorkoutSession };
   Leaderboard:     undefined;

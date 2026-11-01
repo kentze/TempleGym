@@ -424,6 +424,16 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
 
+        <TouchableOpacity
+          style={styles.showExercisesBtn}
+          onPress={() => navigation.navigate("GymExercises")}
+          activeOpacity={0.75}
+        >
+          <Ionicons name="barbell-outline" size={18} color={Colors.textMuted} />
+          <Text style={styles.showExercisesText}>Show exercises</Text>
+          <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+        </TouchableOpacity>
+
         {/* Routines */}
         <View style={styles.routinesSectionHeader}>
           <Text style={styles.sectionLabel}>Routines</Text>
@@ -1048,6 +1058,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   // Horizontal scroll cards (Start a Session)
+  showExercisesBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  showExercisesText: { flex: 1, fontSize: 14, color: Colors.text },
   sessionCardsScroll: { marginHorizontal: -20 },
   sessionCardsContent: {
     flexDirection: "row",
