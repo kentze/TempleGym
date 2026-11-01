@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { buildGymExercises } from '../src/data/gymWorkouts';
+import { buildGymExercises, SIMPLE_EXERCISES } from '../src/data/gymWorkouts';
 
 const prisma = new PrismaClient();
 
@@ -64,8 +64,17 @@ async function main() {
     });
   }
 
+  // Upper Body, Lower Body and Cardio for the Simple tab
+  for (const ex of SIMPLE_EXERCISES) {
+    await prisma.exercise.upsert({
+      where:  { name: ex.name },
+      update: {},
+      create: ex,
+    });
+  }
+
   // Remove any exercises no longer in the list (that have no workout history)
-  const names = [...exercises, ...gymExercises].map((e) => e.name);
+  const names = [...exercises, ...gymExercises, ...SIMPLE_EXERCISES].map((e) => e.name);
   await prisma.exercise.deleteMany({
     where: {
       name:            { notIn: names },

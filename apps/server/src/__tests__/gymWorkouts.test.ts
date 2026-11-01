@@ -1,4 +1,4 @@
-import { buildGymExercises, GYM_WORKOUT_CATALOG } from '../data/gymWorkouts';
+import { buildGymExercises, GYM_WORKOUT_CATALOG, SIMPLE_EXERCISES } from '../data/gymWorkouts';
 
 describe('buildGymExercises', () => {
   const exercises = buildGymExercises();
@@ -35,5 +35,20 @@ describe('buildGymExercises', () => {
     for (const items of Object.values(GYM_WORKOUT_CATALOG)) {
       for (const item of items) expect(names.has(item.name)).toBe(true);
     }
+  });
+});
+
+describe('SIMPLE_EXERCISES', () => {
+  it('is Upper Body in PUSH, Lower Body in LEGS and Cardio in CARDIO, and nothing else', () => {
+    expect(SIMPLE_EXERCISES.map((e) => [e.name, e.category])).toEqual([
+      ['Upper Body', 'PUSH'],
+      ['Lower Body', 'LEGS'],
+      ['Cardio', 'CARDIO'],
+    ]);
+  });
+
+  it('never shares a name with a gym exercise, so the seed cannot overwrite one', () => {
+    const gymNames = new Set(buildGymExercises().map((e) => e.name));
+    for (const ex of SIMPLE_EXERCISES) expect(gymNames.has(ex.name)).toBe(false);
   });
 });

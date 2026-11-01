@@ -145,3 +145,10 @@ export function buildGymExercises(): GymExercise[] {
   }
   return [...byName.values()];
 }
+
+// Three broad choices for beginners. They are real exercises so a workout can save them.
+export const SIMPLE_EXERCISES: Omit<GymExercise, "gyms">[] = [
+  { name: "Upper Body", category: "PUSH", muscleGroups: ["Upper Body"] },
+  { name: "Lower Body", category: "LEGS", muscleGroups: ["Lower Body"] },
+  { name: "Cardio", category: "CARDIO", muscleGroups: ["Cardio"] },
+];
