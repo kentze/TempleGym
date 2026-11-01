@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import LogoLoader from '../../components/LogoLoader';
 import GymExerciseList, { gymName } from '../../components/GymExerciseList';
+import SimpleExerciseList from '../../components/SimpleExerciseList';
+import { isSimpleExercise } from '../../constants/simpleExercises';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +41,7 @@ export default function SessionLoggingScreen() {
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
   const [pickerVisible, setPickerVisible]        = useState(false);
   const [pickerLoading, setPickerLoading]        = useState(false);
+  const [pickerTab, setPickerTab]                = useState<'simple' | 'detailed'>('simple');
   const [setInputs, setSetInputs]                = useState<Record<string, SetInputs>>({});
   const [error, setError]                        = useState<string | null>(null);
 
@@ -128,6 +131,9 @@ export default function SessionLoggingScreen() {
 
   const addedIds = new Set(activeSession.exercises.map((e) => e.exerciseId));
   const pickable = availableExercises.filter((e) => !addedIds.has(e.id));
+  const simplePickable   = pickable.filter(isSimpleExercise);
+  const detailedPickable = pickable.filter((e) => !isSimpleExercise(e));
+  const simpleMissing    = availableExercises.length > 0 && !availableExercises.some(isSimpleExercise);
 
   return (
     <View style={styles.container}>
@@ -207,22 +213,43 @@ export default function SessionLoggingScreen() {
             <View>
               <Text style={styles.modalTitle}>Add Exercise</Text>
               <Text style={styles.modalSubtitle}>
-                Showing equipment for {gymName(user?.gymId ?? 'city')}
+                {pickerTab === 'simple'
+                  ? "Pick what you're training today"
+                  : `Showing equipment for ${gymName(user?.gymId ?? 'city')}`}
               </Text>
             </View>
             <TouchableOpacity onPress={() => setPickerVisible(false)}>
               <Text style={styles.modalClose}>Done</Text>
             </TouchableOpacity>
           </View>
+          <View style={styles.tabBar}>
+            {(['simple', 'detailed'] as const).map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                style={[styles.tab, pickerTab === tab && styles.tabActive]}
+                onPress={() => setPickerTab(tab)}
+              >
+                <Text style={[styles.tabText, pickerTab === tab && styles.tabTextActive]}>
+                  {tab === 'simple' ? 'Simple' : 'Detailed'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
           {pickerLoading
             ? <LogoLoader />
-            : (
-              <GymExerciseList
-                exercises={pickable}
-                onSelect={handlePickExercise}
-                emptyText="All exercises already added."
-              />
-            )
+            : pickerTab === 'simple'
+              ? simpleMissing
+                ? <Text style={styles.emptyText}>Simple options are not set up yet. Use the Detailed tab.</Text>
+                : <SimpleExerciseList
+                    exercises={simplePickable}
+                    onSelect={handlePickExercise}
+                    emptyText="All simple options already added."
+                  />
+              : <GymExerciseList
+                  exercises={detailedPickable}
+                  onSelect={handlePickExercise}
+                  emptyText="All exercises already added."
+                />
           }
         </View>
       </Modal>
@@ -256,4 +283,10 @@ const styles = StyleSheet.create({
   modalTitle:         { fontSize: 18, fontWeight: '700', color: Colors.text },
   modalSubtitle:      { fontSize: 13, color: Colors.textMuted, marginTop: 2 },
   modalClose:         { color: Colors.primary, fontSize: 16 },
+  tabBar:             { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: Colors.border },
+  tab:                { flex: 1, paddingVertical: 14, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tabActive:          { borderBottomColor: Colors.primary },
+  tabText:            { fontSize: 15, fontWeight: '600', color: Colors.textMuted },
+  tabTextActive:      { color: Colors.text },
+  emptyText:          { textAlign: 'center', color: Colors.textMuted, marginTop: 40, paddingHorizontal: 20 },
 });

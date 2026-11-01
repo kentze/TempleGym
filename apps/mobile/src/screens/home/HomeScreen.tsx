@@ -373,6 +373,16 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* Start workout */}
+        <TouchableOpacity
+          style={styles.startWorkoutButton}
+          onPress={() => handleStart("FULL_BODY")}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add-circle" size={24} color="#fff" />
+          <Text style={styles.startWorkoutText}>Start Workout</Text>
+        </TouchableOpacity>
+
         {/* Today's Workout */}
         <View style={styles.todayHeader}>
           <Text style={styles.sectionLabel}>Today's Workout</Text>
@@ -398,16 +408,6 @@ export default function HomeScreen() {
               {todaySession.label} day recommended
             </Text>
           </View>
-        </TouchableOpacity>
-
-        {/* Start workout */}
-        <TouchableOpacity
-          style={styles.startWorkoutButton}
-          onPress={() => handleStart("FULL_BODY")}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add-circle" size={24} color="#fff" />
-          <Text style={styles.startWorkoutText}>Start Workout</Text>
         </TouchableOpacity>
 
         {/* Routines */}
