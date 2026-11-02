@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants/colors";
 import { api } from "../../services/api";
 import GymTabs from "../../components/GymTabs";
+import { useGreetingStore } from "../../store/greeting.store";
 import EmptyRoutinePocket from "../../components/EmptyRoutinePocket";
 import type { GymId } from "../../constants/gyms";
 import { useAuthStore } from "../../store/auth.store";
@@ -101,6 +102,7 @@ export default function HomeScreen() {
   const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
   const user = useAuthStore((s) => s.user);
+  const greeting = useGreetingStore((s) => s.greeting);
   const setUser = useAuthStore((s) => s.setUser);
   const startSession = useWorkoutStore((s) => s.startSession);
 
@@ -359,7 +361,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.date}>{today}</Text>
-            <Text style={styles.greeting}>Hey, {firstName}</Text>
+            <Text style={styles.greeting}>{greeting}, {firstName}</Text>
           </View>
           <TouchableOpacity
             style={styles.settingsBtn}
