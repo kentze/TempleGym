@@ -33,13 +33,10 @@ interface RoutinesState {
   hydrate:              (userId: string) => Promise<void>;
   addFolder:            (name: string) => void;
   toggleFolder:         (id: number) => void;
-  addToFolder:          (folderId: number, routine: SavedRoutine) => void;
-  addToDefault:         (routine: SavedRoutine) => void;
+  setFolderRoutines:    (folderId: number | 'default', routines: SavedRoutine[]) => void;
   setDefaultOpen:       (open: boolean) => void;
   renameFolder:         (id: number, name: string) => void;
   renameDefaultFolder:  (name: string) => void;
-  removeRoutineItem:    (folderId: number | 'default', index: number) => void;
-  replaceRoutineItem:   (folderId: number | 'default', index: number, routine: SavedRoutine) => void;
   deleteFolder:         (id: number) => void;
   deleteDefaultFolder:  () => void;
 }
@@ -126,26 +123,21 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
     });
   },
 
-  addToFolder: (folderId, routine) => {
+  // Replace every routine in a folder with the given list, and open the folder
+  setFolderRoutines: (folderId, routines) => {
     const userId = get().userId ?? '';
-    set((s) => {
-      const next = s.folders.map((f) =>
-        f.id === folderId ? { ...f, items: [...f.items, routine], open: true } : f
-      );
-      const f = next.find((x) => x.id === folderId);
-      if (f) safe_set(folderKey(userId, folderId), JSON.stringify({ name: f.name, open: true, items: f.items }));
-      return { folders: next };
-    });
-  },
-
-  addToDefault: (routine) => {
-    const userId = get().userId ?? '';
-    set((s) => {
-      const next = [...s.defaultItems, routine];
-      safe_set(k(userId, 'tg_default_items'), JSON.stringify(next));
+    if (folderId === 'default') {
+      safe_set(k(userId, 'tg_default_items'), JSON.stringify(routines));
       safe_set(k(userId, 'tg_default_open'), '1');
       safe_set(k(userId, 'tg_default_hidden'), '0');
-      return { defaultItems: next, _defaultOpen: true, _defaultHidden: false };
+      set({ defaultItems: routines, _defaultOpen: true, _defaultHidden: false });
+      return;
+    }
+    set((s) => {
+      const target = s.folders.find((f) => f.id === folderId);
+      if (!target) return s;
+      safe_set(folderKey(userId, folderId), JSON.stringify({ name: target.name, open: true, items: routines }));
+      return { folders: s.folders.map((f) => (f.id === folderId ? { ...f, items: routines, open: true } : f)) };
     });
   },
 
@@ -175,48 +167,6 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
     if (!clean) return;
     safe_set(k(userId, 'tg_default_name'), clean);
     set({ _defaultName: clean });
-  },
-
-  removeRoutineItem: (folderId, index) => {
-    const userId = get().userId ?? '';
-    if (folderId === 'default') {
-      set((s) => {
-        const next = s.defaultItems.filter((_, i) => i !== index);
-        safe_set(k(userId, 'tg_default_items'), JSON.stringify(next));
-        return { defaultItems: next };
-      });
-    } else {
-      set((s) => {
-        const next = s.folders.map((f) => {
-          if (f.id !== folderId) return f;
-          const items = f.items.filter((_, i) => i !== index);
-          safe_set(folderKey(userId, f.id), JSON.stringify({ name: f.name, open: f.open, items }));
-          return { ...f, items };
-        });
-        return { folders: next };
-      });
-    }
-  },
-
-  replaceRoutineItem: (folderId, index, routine) => {
-    const userId = get().userId ?? '';
-    if (folderId === 'default') {
-      set((s) => {
-        const next = s.defaultItems.map((item, i) => i === index ? routine : item);
-        safe_set(k(userId, 'tg_default_items'), JSON.stringify(next));
-        return { defaultItems: next };
-      });
-    } else {
-      set((s) => {
-        const next = s.folders.map((f) => {
-          if (f.id !== folderId) return f;
-          const items = f.items.map((item, i) => i === index ? routine : item);
-          safe_set(folderKey(userId, f.id), JSON.stringify({ name: f.name, open: f.open, items }));
-          return { ...f, items };
-        });
-        return { folders: next };
-      });
-    }
   },
 
   deleteFolder: (id) => {

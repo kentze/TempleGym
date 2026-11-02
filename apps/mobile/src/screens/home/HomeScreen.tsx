@@ -14,9 +14,8 @@ import {
   Dimensions,
   Alert,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RouteProp } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants/colors";
@@ -62,7 +61,6 @@ function tierOuterBg(pts: number) {
 }
 
 type Nav = NativeStackNavigationProp<MainStackParamList, "Home">;
-type Route = RouteProp<MainStackParamList, "Home">;
 
 function detectType(exs: { category: SessionType }[]): SessionType {
   if (!exs.length) return "PUSH";
@@ -73,7 +71,6 @@ function detectType(exs: { category: SessionType }[]): SessionType {
 
 export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
-  const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
   const user = useAuthStore((s) => s.user);
   const greeting = useGreetingStore((s) => s.greeting);
@@ -88,11 +85,7 @@ export default function HomeScreen() {
     hydrate,
     addFolder,
     toggleFolder,
-    addToFolder,
-    addToDefault,
     setDefaultOpen,
-    removeRoutineItem,
-    replaceRoutineItem,
     deleteFolder,
     deleteDefaultFolder,
     renameFolder,
@@ -111,9 +104,6 @@ export default function HomeScreen() {
   // Selects the whole old name when the popup opens, so typing replaces it
   const [renameSelection, setRenameSelection] = useState<{ start: number; end: number } | undefined>();
 
-  // 3-dot card popup: key is `"folderId:itemIndex"`
-  const [cardMenuKey, setCardMenuKey] = useState<string | null>(null);
-  const [cardMenuTop, setCardMenuTop] = useState(0);
   // The "..." menu on a folder header: which folder, and how far down the screen to draw it
   const [folderMenu, setFolderMenu] = useState<{ id: number | "default"; top: number } | null>(null);
 
@@ -121,21 +111,6 @@ export default function HomeScreen() {
   useEffect(() => {
     if (user?.id) hydrate(user.id);
   }, [user?.id]);
-
-  // Receive saved/updated routine navigated back from AddRoutineScreen
-  useEffect(() => {
-    const nr = route.params?.newRoutine;
-    const idx = route.params?.replaceIndex;
-    if (!nr) return;
-    if (idx !== undefined) {
-      replaceRoutineItem(nr.folderId, idx, nr);
-    } else if (nr.folderId === "default") {
-      addToDefault(nr);
-    } else {
-      addToFolder(nr.folderId as number, nr);
-    }
-    navigation.setParams({ newRoutine: undefined, replaceIndex: undefined });
-  }, [route.params?.newRoutine]);
 
   function handleAddRoutine() {
     setNewRoutineName("");
@@ -259,19 +234,6 @@ export default function HomeScreen() {
     day: "numeric",
   });
 
-
-  function openCardMenu(
-    folderId: number | "default",
-    index: number,
-    pageY: number,
-  ) {
-    const key = `${folderId}:${index}`;
-    const screenH = Dimensions.get("window").height;
-    const menuH = 110; // 2 items ~41px each + 1 divider + buffer
-    const clamped = Math.min(pageY - 16, screenH - menuH - 20);
-    setCardMenuTop(clamped);
-    setCardMenuKey((prev) => (prev === key ? null : key));
-  }
 
   function openFolderMenu(id: number | "default", pageY: number) {
     const screenH = Dimensions.get("window").height;
@@ -463,18 +425,6 @@ export default function HomeScreen() {
                 <View key={i} style={[styles.routineCard, i > 0 && styles.routineCardDivider]}>
                   <View style={styles.routineCardHeader}>
                     <Text style={styles.routineCardType}>{item.name}</Text>
-                    <TouchableOpacity
-                      onPress={(e) =>
-                        openCardMenu("default", i, e.nativeEvent.pageY)
-                      }
-                      hitSlop={8}
-                    >
-                      <Ionicons
-                        name="ellipsis-horizontal"
-                        size={18}
-                        color={Colors.textMuted}
-                      />
-                    </TouchableOpacity>
                   </View>
                   <Text style={styles.routineCardCount}>
                     {item.exercises.length} exercise
@@ -549,18 +499,6 @@ export default function HomeScreen() {
                   <View key={i} style={[styles.routineCard, i > 0 && styles.routineCardDivider]}>
                     <View style={styles.routineCardHeader}>
                       <Text style={styles.routineCardType}>{item.name}</Text>
-                      <TouchableOpacity
-                        onPress={(e) =>
-                          openCardMenu(routine.id, i, e.nativeEvent.pageY)
-                        }
-                        hitSlop={8}
-                      >
-                        <Ionicons
-                          name="ellipsis-horizontal"
-                          size={18}
-                          color={Colors.textMuted}
-                        />
-                      </TouchableOpacity>
                     </View>
                     <Text style={styles.routineCardCount}>
                       {item.exercises.length} exercise
@@ -746,7 +684,7 @@ export default function HomeScreen() {
         />
       </Animated.View>
 
-      {/* Folder "..." menu: rename, add a routine, delete */}
+      {/* Folder "..." menu: rename, edit its routines, delete */}
       {folderMenu !== null &&
         (() => {
           const { id } = folderMenu;
@@ -771,11 +709,11 @@ export default function HomeScreen() {
                   style={styles.cardMenuItem}
                   onPress={() => {
                     setFolderMenu(null);
-                    navigation.navigate("AddRoutine", { folderId: id, folderName: name });
+                    navigation.navigate("EditRoutine", { folderId: id, folderName: name });
                   }}
                 >
                   <Ionicons name="add-circle-outline" size={16} color={Colors.text} />
-                  <Text style={styles.cardMenuText}>Add routine</Text>
+                  <Text style={styles.cardMenuText}>Edit routine</Text>
                 </TouchableOpacity>
                 {canDeleteFolder && (
                   <>
@@ -796,70 +734,6 @@ export default function HomeScreen() {
             </Pressable>
           );
         })()}
-
-      {/* 3-dot card menu popup */}
-      {cardMenuKey !== null &&
-        (() => {
-          const [rawId, rawIdx] = cardMenuKey.split(":");
-          const folderId = rawId === "default" ? "default" : Number(rawId);
-          const itemIndex = Number(rawIdx);
-          const item =
-            folderId === "default"
-              ? defaultItems[itemIndex]
-              : folders.find((f) => f.id === folderId)?.items[itemIndex];
-          const folderName =
-            folderId === "default"
-              ? defaultRoutineName
-              : (folders.find((f) => f.id === folderId)?.name ?? "");
-          if (!item) return null;
-          return (
-            <Pressable
-              style={styles.popupOverlay}
-              onPress={() => setCardMenuKey(null)}
-            >
-              <View style={[styles.cardMenu, { top: cardMenuTop }]}>
-                <TouchableOpacity
-                  style={styles.cardMenuItem}
-                  onPress={() => {
-                    setCardMenuKey(null);
-                    navigation.navigate("AddRoutine", {
-                      folderId,
-                      folderName,
-                      editIndex: itemIndex,
-                      initialName: item.name,
-                      initialExercises: item.exercises,
-                    });
-                  }}
-                >
-                  <Ionicons
-                    name="pencil-outline"
-                    size={16}
-                    color={Colors.text}
-                  />
-                  <Text style={styles.cardMenuText}>Edit</Text>
-                </TouchableOpacity>
-                <View style={styles.cardMenuDivider} />
-                <TouchableOpacity
-                  style={styles.cardMenuItem}
-                  onPress={() => {
-                    removeRoutineItem(folderId, itemIndex);
-                    setCardMenuKey(null);
-                  }}
-                >
-                  <Ionicons
-                    name="trash-outline"
-                    size={16}
-                    color={Colors.error}
-                  />
-                  <Text style={[styles.cardMenuText, { color: Colors.error }]}>
-                    Delete
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </Pressable>
-          );
-        })()}
-
     </View>
   );
 }

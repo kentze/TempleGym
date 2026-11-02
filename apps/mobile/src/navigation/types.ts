@@ -12,7 +12,7 @@ export interface SavedRoutine {
 }
 
 export type MainStackParamList = {
-  Home:            { newRoutine?: SavedRoutine; replaceIndex?: number } | undefined;
+  Home:            undefined;
   Workout:         undefined;
   SessionLogging:  undefined;
   History:         undefined;
@@ -21,7 +21,7 @@ export type MainStackParamList = {
   Gauntlet:        undefined;
   Stats:           undefined;
   Settings:        undefined;
-  AddRoutine:      { folderId: number | 'default'; folderName: string; editIndex?: number; initialName?: string; initialExercises?: Exercise[] };
+  EditRoutine:     { folderId: number | 'default'; folderName: string };
 };
 
 export type AuthScreenProps<T extends keyof AuthStackParamList> =
