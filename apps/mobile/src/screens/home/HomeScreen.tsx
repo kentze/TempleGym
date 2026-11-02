@@ -474,6 +474,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        <View style={styles.folderList}>
         {/* Default My Routine */}
         {!_defaultHidden && <View style={[styles.routineGroup, defaultEmptyOpen && { gap: 0 }]}>
           <TouchableOpacity
@@ -673,6 +674,8 @@ export default function HomeScreen() {
           </View>
           );
         })}
+
+        </View>
 
         {/* Info Modal */}
         <Modal visible={infoVisible} transparent animationType="fade">
@@ -1145,6 +1148,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  folderList: { gap: 12 },
   routineGroup: { gap: 10 },
   routinesHeader: {
     flexDirection: "row",
@@ -1153,7 +1157,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     gap: 12,
   },
   routinesTitleWrap: {
