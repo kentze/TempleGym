@@ -45,7 +45,8 @@ export default function EditRoutineScreen() {
   const [pickerFor, setPickerFor]     = useState<number | null>(null);
   const [dragging, setDragging]       = useState(false);
 
-  const { routines, missingName } = prepareRoutines(parts, folderId);
+  const { routines, missingName, missingExercises } = prepareRoutines(parts, folderId);
+  const cannotSave = missingName || missingExercises;
 
   function updatePart(key: number, change: Partial<RoutineDraft>) {
     setParts((prev) => prev.map((p) => (p.key === key ? { ...p, ...change } : p)));
@@ -63,7 +64,7 @@ export default function EditRoutineScreen() {
   }
 
   function handleSave() {
-    if (missingName) return;
+    if (cannotSave) return;
     setFolderRoutines(folderId, routines);
     navigation.goBack();
   }
@@ -121,11 +122,19 @@ export default function EditRoutineScreen() {
       />
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
-        {missingName && <Text style={styles.hint}>Give every routine a name to save.</Text>}
+        {cannotSave && (
+          <Text style={styles.hint}>
+            {missingName && missingExercises
+              ? 'Give every routine a name and at least one exercise to save.'
+              : missingName
+                ? 'Give every routine a name to save.'
+                : 'Add at least one exercise to every routine to save.'}
+          </Text>
+        )}
         <TouchableOpacity
-          style={[styles.saveBtn, missingName && styles.saveBtnDisabled]}
+          style={[styles.saveBtn, cannotSave && styles.saveBtnDisabled]}
           onPress={handleSave}
-          disabled={missingName}
+          disabled={cannotSave}
         >
           <Text style={styles.saveBtnText}>Save Changes</Text>
         </TouchableOpacity>

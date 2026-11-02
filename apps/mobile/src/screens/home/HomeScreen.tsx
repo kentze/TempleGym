@@ -24,6 +24,7 @@ import GymTabs from "../../components/GymTabs";
 import { useGreetingStore } from "../../store/greeting.store";
 import TipCard from "../../components/TipCard";
 import RoutinePocket from "../../components/RoutinePocket";
+import FolderRoutineList from "../../components/FolderRoutineList";
 import type { GymId } from "../../constants/gyms";
 import { useAuthStore } from "../../store/auth.store";
 import { useWorkoutStore } from "../../store/workout.store";
@@ -421,41 +422,10 @@ export default function HomeScreen() {
 
           {_defaultOpen && (
             <RoutinePocket empty={defaultItems.length === 0}>
-              {defaultItems.map((item, i) => (
-                <View key={i} style={[styles.routineCard, i > 0 && styles.routineCardDivider]}>
-                  <View style={styles.routineCardHeader}>
-                    <Text style={styles.routineCardType}>{item.name}</Text>
-                  </View>
-                  <Text style={styles.routineCardCount}>
-                    {item.exercises.length} exercise
-                    {item.exercises.length !== 1 ? "s" : ""}
-                  </Text>
-                  {item.exercises.length === 0 ? (
-                    <Text style={styles.routineCardEmpty}>No exercises</Text>
-                  ) : (
-                    item.exercises.map((ex, idx, arr) => (
-                      <Text
-                        key={ex.id}
-                        style={
-                          idx === arr.length - 1
-                            ? styles.routineCardLastEx
-                            : styles.routineCardExercise
-                        }
-                      >
-                        {ex.name}
-                      </Text>
-                    ))
-                  )}
-                </View>
-              ))}
-              <View style={styles.folderStartRow}>
-                <TouchableOpacity
-                  style={styles.folderStartBtn}
-                  onPress={() => handleStartFolder(defaultItems)}
-                >
-                  <Text style={styles.folderStartText}>Start</Text>
-                </TouchableOpacity>
-              </View>
+              <FolderRoutineList
+                routines={defaultItems}
+                onStart={() => handleStartFolder(defaultItems)}
+              />
             </RoutinePocket>
           )}
         </View>}
@@ -495,41 +465,10 @@ export default function HomeScreen() {
 
             {routine.open && (
               <RoutinePocket empty={routine.items.length === 0}>
-                {routine.items.map((item, i) => (
-                  <View key={i} style={[styles.routineCard, i > 0 && styles.routineCardDivider]}>
-                    <View style={styles.routineCardHeader}>
-                      <Text style={styles.routineCardType}>{item.name}</Text>
-                    </View>
-                    <Text style={styles.routineCardCount}>
-                      {item.exercises.length} exercise
-                      {item.exercises.length !== 1 ? "s" : ""}
-                    </Text>
-                    {item.exercises.length === 0 ? (
-                      <Text style={styles.routineCardEmpty}>No exercises</Text>
-                    ) : (
-                      item.exercises.map((ex, idx, arr) => (
-                        <Text
-                          key={`${ex.id}-${idx}`}
-                          style={
-                            idx === arr.length - 1
-                              ? styles.routineCardLastEx
-                              : styles.routineCardExercise
-                          }
-                        >
-                          {ex.name}
-                        </Text>
-                      ))
-                    )}
-                  </View>
-                ))}
-                <View style={styles.folderStartRow}>
-                  <TouchableOpacity
-                    style={styles.folderStartBtn}
-                    onPress={() => handleStartFolder(routine.items)}
-                  >
-                    <Text style={styles.folderStartText}>Start</Text>
-                  </TouchableOpacity>
-                </View>
+                <FolderRoutineList
+                  routines={routine.items}
+                  onStart={() => handleStartFolder(routine.items)}
+                />
               </RoutinePocket>
             )}
           </View>
@@ -853,41 +792,6 @@ const styles = StyleSheet.create({
   },
   popupOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
   routinesHeaderJoined: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
-  // A routine inside the folder pocket: no box of its own, just a line between routines
-  routineCard: {
-    paddingHorizontal: 4,
-    paddingTop: 12,
-    paddingBottom: 12,
-    gap: 4,
-  },
-  routineCardDivider: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  routineCardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  routineCardType: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: Colors.text,
-    flex: 1,
-  },
-  routineCardCount: { fontSize: 12, color: Colors.textMuted, marginBottom: 6 },
-  routineCardEmpty: { fontSize: 13, color: Colors.textMuted, fontStyle: 'italic' },
-  routineCardExercise: { fontSize: 14, color: Colors.text },
-  routineCardLastEx: { fontSize: 14, color: Colors.text },
-  // The single Start button at the bottom of a folder's pocket
-  folderStartRow: { alignItems: "flex-end", paddingTop: 4, paddingBottom: 12 },
-  folderStartBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: 10,
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-  },
-  folderStartText: { fontSize: 14, fontWeight: "700", color: Colors.text },
 
   // Info modal
   modalOverlay: {

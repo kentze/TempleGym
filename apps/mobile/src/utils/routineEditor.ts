@@ -7,20 +7,22 @@ export interface RoutineDraft {
   exercises: Exercise[];
 }
 
-// What a Save keeps. A blank part is dropped quietly. A part with exercises but no name blocks the save.
+// What a Save keeps. A blank part (no name, no exercises) is dropped quietly.
+// A routine needs both a name and at least one exercise, or the save is blocked.
 export function prepareRoutines(
   drafts: RoutineDraft[],
   folderId: number | 'default',
-): { routines: SavedRoutine[]; missingName: boolean } {
+): { routines: SavedRoutine[]; missingName: boolean; missingExercises: boolean } {
   const routines: SavedRoutine[] = [];
   let missingName = false;
+  let missingExercises = false;
   for (const draft of drafts) {
     const name = draft.name.trim();
-    if (!name) {
-      if (draft.exercises.length > 0) missingName = true;
-      continue;
-    }
+    const hasExercises = draft.exercises.length > 0;
+    if (!name && !hasExercises) continue;
+    if (!name) { missingName = true; continue; }
+    if (!hasExercises) { missingExercises = true; continue; }
     routines.push({ folderId, name, exercises: draft.exercises });
   }
-  return { routines, missingName };
+  return { routines, missingName, missingExercises };
 }
