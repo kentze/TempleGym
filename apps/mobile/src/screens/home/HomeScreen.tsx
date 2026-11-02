@@ -23,7 +23,7 @@ import { Colors } from "../../constants/colors";
 import { api } from "../../services/api";
 import GymTabs from "../../components/GymTabs";
 import { useGreetingStore } from "../../store/greeting.store";
-import EmptyRoutinePocket from "../../components/EmptyRoutinePocket";
+import RoutinePocket from "../../components/RoutinePocket";
 import type { GymId } from "../../constants/gyms";
 import { useAuthStore } from "../../store/auth.store";
 import { useWorkoutStore } from "../../store/workout.store";
@@ -336,8 +336,6 @@ export default function HomeScreen() {
 
   // All routine items across every folder (custom + default)
   const allRoutineItems = [...defaultItems, ...folders.flatMap((f) => f.items)];
-  // My Routine is open with nothing saved: the empty box hangs off the header
-  const defaultEmptyOpen = _defaultOpen && defaultItems.length === 0;
 
   return (
     <View style={styles.screen}>
@@ -476,9 +474,9 @@ export default function HomeScreen() {
 
         <View style={styles.folderList}>
         {/* Default My Routine */}
-        {!_defaultHidden && <View style={[styles.routineGroup, defaultEmptyOpen && { gap: 0 }]}>
+        {!_defaultHidden && <View>
           <TouchableOpacity
-            style={[styles.routinesHeader, defaultEmptyOpen && styles.routinesHeaderJoined]}
+            style={[styles.routinesHeader, _defaultOpen && styles.routinesHeaderJoined]}
             onPress={() => {
               LayoutAnimation.configureNext(
                 LayoutAnimation.Presets.easeInEaseOut,
@@ -522,8 +520,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
 
           {_defaultOpen && (
-            <View style={styles.routinesDropdown}>
-              {defaultItems.length === 0 && <EmptyRoutinePocket />}
+            <RoutinePocket empty={defaultItems.length === 0}>
               {defaultItems.map((item, i) => (
                 <View key={i} style={styles.routineCard}>
                   <View style={styles.routineCardHeader}>
@@ -569,16 +566,15 @@ export default function HomeScreen() {
                   </TouchableOpacity>
                 </View>
               ))}
-            </View>
+            </RoutinePocket>
           )}
         </View>}
 
         {folders.map((routine) => {
-          const emptyOpen = routine.open && routine.items.length === 0;
           return (
-          <View key={routine.id} style={[styles.routineGroup, emptyOpen && { gap: 0 }]}>
+          <View key={routine.id}>
             <TouchableOpacity
-              style={[styles.routinesHeader, emptyOpen && styles.routinesHeaderJoined]}
+              style={[styles.routinesHeader, routine.open && styles.routinesHeaderJoined]}
               onPress={() => {
                 LayoutAnimation.configureNext(
                   LayoutAnimation.Presets.easeInEaseOut,
@@ -622,8 +618,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
 
             {routine.open && (
-              <View style={styles.routinesDropdown}>
-                {routine.items.length === 0 && <EmptyRoutinePocket />}
+              <RoutinePocket empty={routine.items.length === 0}>
                 {routine.items.map((item, i) => (
                   <View key={i} style={styles.routineCard}>
                     <View style={styles.routineCardHeader}>
@@ -669,7 +664,7 @@ export default function HomeScreen() {
                     </TouchableOpacity>
                   </View>
                 ))}
-              </View>
+              </RoutinePocket>
             )}
           </View>
           );
@@ -1149,7 +1144,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   folderList: { gap: 12 },
-  routineGroup: { gap: 10 },
   routinesHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -1173,7 +1167,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.text,
   },
-  routinesDropdown: { gap: 10 },
   popupOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
   routinesHeaderJoined: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
   routineCard: {
