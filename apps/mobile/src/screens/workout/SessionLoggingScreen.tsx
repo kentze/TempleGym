@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import ExercisePickerSheet from '../../components/ExercisePickerSheet';
+import { sectionMarks } from '../../utils/routineSession';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -98,6 +99,7 @@ export default function SessionLoggingScreen() {
   if (!activeSession) return null;
 
   const addedIds = new Set(activeSession.exercises.map((e) => e.exerciseId));
+  const marks    = sectionMarks(activeSession.exercises.map((e) => e.group));
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
@@ -110,8 +112,11 @@ export default function SessionLoggingScreen() {
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {activeSession.exercises.map((ex) => (
-          <View key={ex.slotKey} style={styles.exerciseCard}>
+        {activeSession.exercises.map((ex, index) => (
+          <Fragment key={ex.slotKey}>
+          {marks[index].divider && <View style={styles.sectionDivider} />}
+          {marks[index].label && <Text style={styles.sectionLabel}>{marks[index].label}</Text>}
+          <View style={styles.exerciseCard}>
             <Text style={styles.exerciseName}>{ex.name}</Text>
 
             {ex.sets.map((s) => {
@@ -150,6 +155,7 @@ export default function SessionLoggingScreen() {
               </TouchableOpacity>
             </View>
           </View>
+          </Fragment>
         ))}
 
         <TouchableOpacity style={styles.addExerciseButton} onPress={() => setPickerVisible(true)}>
@@ -188,6 +194,8 @@ const styles = StyleSheet.create({
   error:              { color: Colors.error, fontSize: 13, textAlign: 'center', paddingHorizontal: 20, paddingTop: 8 },
   scroll:             { flex: 1 },
   scrollContent:      { padding: 16, gap: 12 },
+  sectionDivider:     { height: 1, backgroundColor: Colors.border },
+  sectionLabel:       { fontSize: 12, fontWeight: '600', color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
   exerciseCard:       { backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 14, gap: 8 },
   exerciseName:       { fontSize: 16, fontWeight: '600', color: Colors.text },
   setRow:             { fontSize: 13, color: Colors.textMuted },

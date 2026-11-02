@@ -28,7 +28,8 @@ import type { GymId } from "../../constants/gyms";
 import { useAuthStore } from "../../store/auth.store";
 import { useWorkoutStore } from "../../store/workout.store";
 import { useRoutinesStore } from "../../store/routines.store";
-import type { MainStackParamList } from "../../navigation/types";
+import type { MainStackParamList, SavedRoutine } from "../../navigation/types";
+import { seedFromRoutines } from "../../utils/routineSession";
 import type {
   Exercise,
   SessionType,
@@ -105,6 +106,7 @@ export default function HomeScreen() {
   const greeting = useGreetingStore((s) => s.greeting);
   const setUser = useAuthStore((s) => s.setUser);
   const startSession = useWorkoutStore((s) => s.startSession);
+  const startSessionFrom = useWorkoutStore((s) => s.startSessionFrom);
 
   const {
     folders,
@@ -334,6 +336,15 @@ export default function HomeScreen() {
     navigation.navigate("SessionLogging");
   }
 
+  // One Start per folder: a single workout holding every routine in it, in order
+  function handleStartFolder(routines: SavedRoutine[]) {
+    const seeds = seedFromRoutines(routines);
+    setPlanVisible(false);
+    setRoutineExpanded(false);
+    startSessionFrom(detectType(seeds.map((seed) => seed.exercise)), seeds);
+    navigation.navigate("SessionLogging");
+  }
+
   // All routine items across every folder (custom + default)
   const allRoutineItems = [...defaultItems, ...folders.flatMap((f) => f.items)];
 
@@ -558,14 +569,16 @@ export default function HomeScreen() {
                       </Text>
                     ))
                   )}
-                  <TouchableOpacity
-                    style={styles.routineCardStart}
-                    onPress={() => handleStartRoutine(item.exercises)}
-                  >
-                    <Text style={styles.routineCardStartText}>Start</Text>
-                  </TouchableOpacity>
                 </View>
               ))}
+              <View style={styles.folderStartRow}>
+                <TouchableOpacity
+                  style={styles.folderStartBtn}
+                  onPress={() => handleStartFolder(defaultItems)}
+                >
+                  <Text style={styles.folderStartText}>Start</Text>
+                </TouchableOpacity>
+              </View>
             </RoutinePocket>
           )}
         </View>}
@@ -656,14 +669,16 @@ export default function HomeScreen() {
                         </Text>
                       ))
                     )}
-                    <TouchableOpacity
-                      style={styles.routineCardStart}
-                      onPress={() => handleStartRoutine(item.exercises)}
-                    >
-                      <Text style={styles.routineCardStartText}>Start</Text>
-                    </TouchableOpacity>
                   </View>
                 ))}
+                <View style={styles.folderStartRow}>
+                  <TouchableOpacity
+                    style={styles.folderStartBtn}
+                    onPress={() => handleStartFolder(routine.items)}
+                  >
+                    <Text style={styles.folderStartText}>Start</Text>
+                  </TouchableOpacity>
+                </View>
               </RoutinePocket>
             )}
           </View>
@@ -1173,7 +1188,7 @@ const styles = StyleSheet.create({
   routineCard: {
     paddingHorizontal: 4,
     paddingTop: 12,
-    paddingBottom: 14,
+    paddingBottom: 12,
     gap: 4,
   },
   routineCardDivider: {
@@ -1192,19 +1207,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   routineCardCount: { fontSize: 12, color: Colors.textMuted, marginBottom: 6 },
-  routineCardEmpty: { fontSize: 13, color: Colors.textMuted, fontStyle: 'italic', paddingRight: 64 },
+  routineCardEmpty: { fontSize: 13, color: Colors.textMuted, fontStyle: 'italic' },
   routineCardExercise: { fontSize: 14, color: Colors.text },
-  routineCardLastEx: { fontSize: 14, color: Colors.text, paddingRight: 64 },
-  routineCardStart: {
-    position: "absolute",
-    right: 4,
-    bottom: 10,
+  routineCardLastEx: { fontSize: 14, color: Colors.text },
+  // The single Start button at the bottom of a folder's pocket
+  folderStartRow: { alignItems: "flex-end", paddingTop: 4, paddingBottom: 12 },
+  folderStartBtn: {
     backgroundColor: Colors.primary,
     borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
   },
-  routineCardStartText: { fontSize: 13, fontWeight: "700", color: Colors.text },
+  folderStartText: { fontSize: 14, fontWeight: "700", color: Colors.text },
 
   // Info modal
   modalOverlay: {
