@@ -23,8 +23,7 @@ import { Colors } from "../../constants/colors";
 import { api } from "../../services/api";
 import GymTabs from "../../components/GymTabs";
 import { useGreetingStore } from "../../store/greeting.store";
-import { useTipStore } from "../../store/tip.store";
-import { tipContent } from "../../constants/tips";
+import TipCard from "../../components/TipCard";
 import RoutinePocket from "../../components/RoutinePocket";
 import type { GymId } from "../../constants/gyms";
 import { useAuthStore } from "../../store/auth.store";
@@ -257,7 +256,6 @@ export default function HomeScreen() {
     day: "numeric",
   });
 
-  const tip = tipContent(useTipStore((st) => st.tip), new Date());
 
   function openCardMenu(
     folderId: number | "default",
@@ -392,13 +390,7 @@ export default function HomeScreen() {
           />
         </View>
         {/* Today's tip: a suggested day, or a workout fact */}
-        <View style={styles.tipCard}>
-          <Ionicons name="bulb-outline" size={18} color={Colors.textMuted} />
-          <Text style={styles.tipText}>
-            <Text style={styles.tipLead}>{tip.lead} </Text>
-            {tip.body}
-          </Text>
-        </View>
+        <TipCard />
 
         {/* Start workout */}
         <TouchableOpacity
@@ -923,19 +915,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   // Horizontal scroll cards (Start a Session)
-  tipCard: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-  },
-  tipText: { flex: 1, fontSize: 13, lineHeight: 19, color: Colors.textMuted },
-  tipLead: { fontWeight: "700", color: Colors.text },
   startWorkoutButton: {
     flexDirection: "row",
     backgroundColor: Colors.primary,

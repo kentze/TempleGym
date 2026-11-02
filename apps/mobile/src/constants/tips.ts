@@ -32,10 +32,15 @@ export function suggestedDay(date: Date): DayKind {
 
 export type Tip = { kind: 'suggestion' } | { kind: 'fact'; index: number };
 
-// Half the time the day suggestion, otherwise a random fact.
-export function pickTip(random: () => number = Math.random): Tip {
-  if (random() < 0.5) return { kind: 'suggestion' };
-  return { kind: 'fact', index: Math.min(FACTS.length - 1, Math.floor(random() * FACTS.length)) };
+// Every tip once, in a random order: the day suggestion and each fact.
+// The card shows them one after another, so nothing repeats until all have been shown.
+export function buildTipOrder(random: () => number = Math.random): Tip[] {
+  const tips: Tip[] = [{ kind: 'suggestion' }, ...FACTS.map((_, index): Tip => ({ kind: 'fact', index }))];
+  for (let i = tips.length - 1; i > 0; i--) {
+    const j = Math.min(i, Math.floor(random() * (i + 1)));
+    [tips[i], tips[j]] = [tips[j], tips[i]];
+  }
+  return tips;
 }
 
 export function tipContent(tip: Tip, date: Date): { lead: string; body: string } {
