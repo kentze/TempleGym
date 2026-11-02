@@ -39,7 +39,6 @@ interface RoutinesState {
   renameFolder:         (id: number, name: string) => void;
   renameDefaultFolder:  (name: string) => void;
   removeRoutineItem:    (folderId: number | 'default', index: number) => void;
-  duplicateRoutineItem: (folderId: number | 'default', index: number) => void;
   replaceRoutineItem:   (folderId: number | 'default', index: number, routine: SavedRoutine) => void;
   deleteFolder:         (id: number) => void;
   deleteDefaultFolder:  () => void;
@@ -191,33 +190,6 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
         const next = s.folders.map((f) => {
           if (f.id !== folderId) return f;
           const items = f.items.filter((_, i) => i !== index);
-          safe_set(folderKey(userId, f.id), JSON.stringify({ name: f.name, open: f.open, items }));
-          return { ...f, items };
-        });
-        return { folders: next };
-      });
-    }
-  },
-
-  duplicateRoutineItem: (folderId, index) => {
-    const userId = get().userId ?? '';
-    if (folderId === 'default') {
-      set((s) => {
-        const item = s.defaultItems[index];
-        if (!item) return s;
-        const copy = { ...item, name: `${item.name} (copy)` };
-        const next = [...s.defaultItems.slice(0, index + 1), copy, ...s.defaultItems.slice(index + 1)];
-        safe_set(k(userId, 'tg_default_items'), JSON.stringify(next));
-        return { defaultItems: next };
-      });
-    } else {
-      set((s) => {
-        const next = s.folders.map((f) => {
-          if (f.id !== folderId) return f;
-          const item = f.items[index];
-          if (!item) return f;
-          const copy = { ...item, name: `${item.name} (copy)` };
-          const items = [...f.items.slice(0, index + 1), copy, ...f.items.slice(index + 1)];
           safe_set(folderKey(userId, f.id), JSON.stringify({ name: f.name, open: f.open, items }));
           return { ...f, items };
         });

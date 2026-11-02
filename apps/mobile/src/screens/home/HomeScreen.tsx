@@ -17,7 +17,7 @@ import {
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RouteProp } from "@react-navigation/native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants/colors";
 import { api } from "../../services/api";
@@ -92,7 +92,6 @@ export default function HomeScreen() {
     addToDefault,
     setDefaultOpen,
     removeRoutineItem,
-    duplicateRoutineItem,
     replaceRoutineItem,
     deleteFolder,
     deleteDefaultFolder,
@@ -115,6 +114,8 @@ export default function HomeScreen() {
   // 3-dot card popup: key is `"folderId:itemIndex"`
   const [cardMenuKey, setCardMenuKey] = useState<string | null>(null);
   const [cardMenuTop, setCardMenuTop] = useState(0);
+  // The "..." menu on a folder header: which folder, and how far down the screen to draw it
+  const [folderMenu, setFolderMenu] = useState<{ id: number | "default"; top: number } | null>(null);
 
   // Hydrate persisted routines on mount (scoped to logged-in user)
   useEffect(() => {
@@ -162,10 +163,12 @@ export default function HomeScreen() {
     setRenameTarget(null);
   }
 
-  // Folders are deleted with a long press, as long as at least one folder is left
+  // At least one folder always stays, so the last one cannot be deleted
+  const canDeleteFolder = folders.length + (_defaultHidden ? 0 : 1) > 1;
+
+  // Delete a folder after asking
   function confirmDeleteFolder(id: number | "default", name: string) {
-    const visibleCount = folders.length + (_defaultHidden ? 0 : 1);
-    if (visibleCount <= 1) return;
+    if (!canDeleteFolder) return;
     Alert.alert(`Delete ${name}?`, "Everything saved in it will be removed.", [
       { text: "Cancel", style: "cancel" },
       {
@@ -264,10 +267,17 @@ export default function HomeScreen() {
   ) {
     const key = `${folderId}:${index}`;
     const screenH = Dimensions.get("window").height;
-    const menuH = 150; // 3 items ~41px each + 2 dividers + buffer
+    const menuH = 110; // 2 items ~41px each + 1 divider + buffer
     const clamped = Math.min(pageY - 16, screenH - menuH - 20);
     setCardMenuTop(clamped);
     setCardMenuKey((prev) => (prev === key ? null : key));
+  }
+
+  function openFolderMenu(id: number | "default", pageY: number) {
+    const screenH = Dimensions.get("window").height;
+    const menuH = 160; // 3 items ~41px each + 2 dividers + buffer
+    const top = Math.min(pageY - 16, screenH - menuH - 20);
+    setFolderMenu((prev) => (prev?.id === id ? null : { id, top }));
   }
 
   function handleStartWorkout() {
@@ -425,7 +435,6 @@ export default function HomeScreen() {
               );
               setDefaultOpen(!_defaultOpen);
             }}
-            onLongPress={() => confirmDeleteFolder("default", defaultRoutineName)}
             activeOpacity={0.75}
           >
             <View
@@ -439,25 +448,12 @@ export default function HomeScreen() {
                 color={Colors.textMuted}
               />
             </View>
-            <View style={styles.routinesTitleWrap}>
-              <Text style={styles.routinesTitle} numberOfLines={1}>{defaultRoutineName}</Text>
-              <TouchableOpacity
-                onPress={() => openRename("default", defaultRoutineName)}
-                hitSlop={10}
-              >
-                <MaterialCommunityIcons name="pencil" size={20} color={Colors.textMuted} />
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.routinesTitle} numberOfLines={1}>{defaultRoutineName}</Text>
             <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("AddRoutine", {
-                  folderId: "default",
-                  folderName: defaultRoutineName,
-                })
-              }
-              hitSlop={8}
+              onPress={(e) => openFolderMenu("default", e.nativeEvent.pageY)}
+              hitSlop={10}
             >
-              <Ionicons name="add" size={24} color={Colors.textMuted} />
+              <Ionicons name="ellipsis-horizontal" size={22} color={Colors.textMuted} />
             </TouchableOpacity>
           </TouchableOpacity>
 
@@ -525,7 +521,6 @@ export default function HomeScreen() {
                 );
                 toggleFolder(routine.id);
               }}
-              onLongPress={() => confirmDeleteFolder(routine.id, routine.name)}
               activeOpacity={0.75}
             >
               <View
@@ -539,25 +534,12 @@ export default function HomeScreen() {
                   color={Colors.textMuted}
                 />
               </View>
-              <View style={styles.routinesTitleWrap}>
-                <Text style={styles.routinesTitle} numberOfLines={1}>{routine.name}</Text>
-                <TouchableOpacity
-                  onPress={() => openRename(routine.id, routine.name)}
-                  hitSlop={10}
-                >
-                  <MaterialCommunityIcons name="pencil" size={20} color={Colors.textMuted} />
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.routinesTitle} numberOfLines={1}>{routine.name}</Text>
               <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("AddRoutine", {
-                    folderId: routine.id,
-                    folderName: routine.name,
-                  })
-                }
-                hitSlop={8}
+                onPress={(e) => openFolderMenu(routine.id, e.nativeEvent.pageY)}
+                hitSlop={10}
               >
-                <Ionicons name="add" size={24} color={Colors.textMuted} />
+                <Ionicons name="ellipsis-horizontal" size={22} color={Colors.textMuted} />
               </TouchableOpacity>
             </TouchableOpacity>
 
@@ -764,6 +746,57 @@ export default function HomeScreen() {
         />
       </Animated.View>
 
+      {/* Folder "..." menu: rename, add a routine, delete */}
+      {folderMenu !== null &&
+        (() => {
+          const { id } = folderMenu;
+          const name = id === "default"
+            ? defaultRoutineName
+            : (folders.find((f) => f.id === id)?.name ?? "");
+          return (
+            <Pressable style={styles.popupOverlay} onPress={() => setFolderMenu(null)}>
+              <View style={[styles.cardMenu, { top: folderMenu.top }]}>
+                <TouchableOpacity
+                  style={styles.cardMenuItem}
+                  onPress={() => {
+                    setFolderMenu(null);
+                    openRename(id, name);
+                  }}
+                >
+                  <Ionicons name="pencil-outline" size={16} color={Colors.text} />
+                  <Text style={styles.cardMenuText}>Rename</Text>
+                </TouchableOpacity>
+                <View style={styles.cardMenuDivider} />
+                <TouchableOpacity
+                  style={styles.cardMenuItem}
+                  onPress={() => {
+                    setFolderMenu(null);
+                    navigation.navigate("AddRoutine", { folderId: id, folderName: name });
+                  }}
+                >
+                  <Ionicons name="add-circle-outline" size={16} color={Colors.text} />
+                  <Text style={styles.cardMenuText}>Add routine</Text>
+                </TouchableOpacity>
+                {canDeleteFolder && (
+                  <>
+                    <View style={styles.cardMenuDivider} />
+                    <TouchableOpacity
+                      style={styles.cardMenuItem}
+                      onPress={() => {
+                        setFolderMenu(null);
+                        confirmDeleteFolder(id, name);
+                      }}
+                    >
+                      <Ionicons name="trash-outline" size={16} color={Colors.error} />
+                      <Text style={[styles.cardMenuText, { color: Colors.error }]}>Delete</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            </Pressable>
+          );
+        })()}
+
       {/* 3-dot card menu popup */}
       {cardMenuKey !== null &&
         (() => {
@@ -804,17 +837,6 @@ export default function HomeScreen() {
                     color={Colors.text}
                   />
                   <Text style={styles.cardMenuText}>Edit</Text>
-                </TouchableOpacity>
-                <View style={styles.cardMenuDivider} />
-                <TouchableOpacity
-                  style={styles.cardMenuItem}
-                  onPress={() => {
-                    duplicateRoutineItem(folderId, itemIndex);
-                    setCardMenuKey(null);
-                  }}
-                >
-                  <Ionicons name="copy-outline" size={16} color={Colors.text} />
-                  <Text style={styles.cardMenuText}>Duplicate</Text>
                 </TouchableOpacity>
                 <View style={styles.cardMenuDivider} />
                 <TouchableOpacity
@@ -949,14 +971,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 12,
   },
-  routinesTitleWrap: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
   routinesTitle: {
-    flexShrink: 1,
+    flex: 1,
     fontSize: 15,
     fontWeight: "600",
     color: Colors.text,
