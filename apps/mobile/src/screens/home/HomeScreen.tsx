@@ -24,6 +24,7 @@ import GymTabs from "../../components/GymTabs";
 import { useGreetingStore } from "../../store/greeting.store";
 import TipCard from "../../components/TipCard";
 import RoutinePocket from "../../components/RoutinePocket";
+import SessionTypesModal from "../../components/SessionTypesModal";
 import FolderRoutineList from "../../components/FolderRoutineList";
 import type { GymId } from "../../constants/gyms";
 import { useAuthStore } from "../../store/auth.store";
@@ -348,9 +349,9 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Today's Workout */}
+        {/* Section header: help popup and gym tabs */}
         <View style={styles.todayHeader}>
-          <Text style={styles.sectionLabel}>Today's Workout</Text>
+          <Text style={styles.sectionLabel}>Let's Train</Text>
           <TouchableOpacity onPress={() => setInfoVisible(true)} hitSlop={8}>
             <View style={styles.infoBtn}>
               <Text style={styles.infoBtnText}>?</Text>
@@ -477,47 +478,8 @@ export default function HomeScreen() {
 
         </View>
 
-        {/* Info Modal */}
-        <Modal visible={infoVisible} transparent animationType="fade">
-          <Pressable
-            style={styles.modalOverlay}
-            onPress={() => setInfoVisible(false)}
-          >
-            <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>Session Types</Text>
-              <Text style={styles.modalBody}>
-                <Text style={styles.modalBold}>Push</Text> — Chest, shoulders
-                and triceps. Muscles involved in pushing movements.
-              </Text>
-              <Text style={styles.modalBody}>
-                <Text style={styles.modalBold}>Pull</Text> — Back, biceps and
-                rear delts. Muscles involved in pulling movements.
-              </Text>
-              <Text style={styles.modalBody}>
-                <Text style={styles.modalBold}>Legs</Text> — Quads, hamstrings,
-                glutes and calves.
-              </Text>
-              <Text style={styles.modalBody}>
-                <Text style={styles.modalBold}>Cardio</Text> — Running, cycling,
-                rowing, and other endurance work.
-              </Text>
-              <Text style={styles.modalBody}>
-                <Text style={styles.modalBold}>Full Body</Text> — A mix of upper
-                and lower body exercises.
-              </Text>
-              <Text style={styles.modalHint}>
-                Today's suggestion rotates through Push, Pull and Legs, one
-                for each day.
-              </Text>
-              <TouchableOpacity
-                style={styles.modalClose}
-                onPress={() => setInfoVisible(false)}
-              >
-                <Text style={styles.modalCloseText}>Got it</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Modal>
+        {/* Session types help popup */}
+        <SessionTypesModal visible={infoVisible} onClose={() => setInfoVisible(false)} />
 
         {/* New Folder Modal */}
         <Modal visible={folderVisible} transparent animationType="fade">
@@ -811,9 +773,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   modalTitle: { fontSize: 17, fontWeight: "700", color: Colors.text },
-  modalBody: { fontSize: 14, color: Colors.textMuted, lineHeight: 20 },
-  modalBold: { fontWeight: "700", color: Colors.text },
-  modalHint: { fontSize: 12, color: Colors.textMuted, fontStyle: "italic" },
   modalClose: {
     backgroundColor: Colors.primary,
     borderRadius: 10,

@@ -1,3 +1,5 @@
+import { SESSION_TYPES } from './sessionTypes';
+
 // Short workout facts for the tip on Home. To add or remove one, edit this list.
 export const FACTS = [
   'Muscles grow while you rest, not while you lift. Sleep counts as training.',
@@ -16,11 +18,10 @@ export const FACTS = [
 
 export type DayKind = 'PUSH' | 'PULL' | 'LEGS';
 
-const DAYS: Record<DayKind, { label: string; description: string }> = {
-  PUSH: { label: 'Push', description: 'Chest, shoulders and triceps' },
-  PULL: { label: 'Pull', description: 'Back, biceps and rear delts' },
-  LEGS: { label: 'Legs', description: 'Quads, hamstrings, glutes and calves' },
-};
+// The wording for a day comes from the shared session type list, so it matches the help popup
+function dayInfo(kind: DayKind) {
+  return SESSION_TYPES.find((t) => t.type === kind)!;
+}
 
 const DAY_ORDER: DayKind[] = ['PUSH', 'PULL', 'LEGS'];
 
@@ -45,7 +46,7 @@ export function buildTipOrder(random: () => number = Math.random): Tip[] {
 
 export function tipContent(tip: Tip, date: Date): { lead: string; body: string } {
   if (tip.kind === 'suggestion') {
-    const day = DAYS[suggestedDay(date)];
+    const day = dayInfo(suggestedDay(date));
     return { lead: 'Suggestion:', body: `Try a ${day.label} day today. ${day.description}.` };
   }
   return { lead: 'Did you know?', body: FACTS[Math.min(Math.max(tip.index, 0), FACTS.length - 1)] };
