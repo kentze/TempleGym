@@ -261,6 +261,7 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
   deleteDefaultFolder: () => {
     const userId = get().userId ?? '';
     safe_set(k(userId, 'tg_default_hidden'), '1');
-    set({ _defaultHidden: true, _defaultOpen: false });
+    safe_set(k(userId, 'tg_default_items'), '[]');
+    set({ _defaultHidden: true, _defaultOpen: false, defaultItems: [] });
   },
 }));
