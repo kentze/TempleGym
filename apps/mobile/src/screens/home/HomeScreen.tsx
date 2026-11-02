@@ -23,6 +23,8 @@ import { Colors } from "../../constants/colors";
 import { api } from "../../services/api";
 import GymTabs from "../../components/GymTabs";
 import { useGreetingStore } from "../../store/greeting.store";
+import { useTipStore } from "../../store/tip.store";
+import { tipContent } from "../../constants/tips";
 import RoutinePocket from "../../components/RoutinePocket";
 import type { GymId } from "../../constants/gyms";
 import { useAuthStore } from "../../store/auth.store";
@@ -31,11 +33,8 @@ import { useRoutinesStore } from "../../store/routines.store";
 import type { MainStackParamList, SavedRoutine } from "../../navigation/types";
 import { seedFromRoutines } from "../../utils/routineSession";
 import type {
-  Exercise,
   SessionType,
   UserProfile,
-  WorkoutSession,
-  WorkoutsListResponse,
 } from "@templegym/types";
 
 const TIERS = [
@@ -65,31 +64,6 @@ function tierOuterBg(pts: number) {
 
 type Nav = NativeStackNavigationProp<MainStackParamList, "Home">;
 type Route = RouteProp<MainStackParamList, "Home">;
-
-const SESSION_INFO: Record<
-  SessionType,
-  { label: string; description: string }
-> = {
-  PUSH: { label: "Push", description: "Chest, shoulders and triceps" },
-  PULL: { label: "Pull", description: "Back, biceps and rear delts" },
-  LEGS: { label: "Legs", description: "Quads, hamstrings, glutes and calves" },
-  CARDIO: { label: "Cardio", description: "Running, cycling, rowing, etc." },
-  FULL_BODY: {
-    label: "Full Body",
-    description: "A mix of upper and lower body exercises",
-  },
-};
-
-const SESSION_CARDS = (Object.keys(SESSION_INFO) as SessionType[]).map(
-  (type) => ({ type, ...SESSION_INFO[type] }),
-);
-
-function suggestedSession(lastType: SessionType | null): SessionType {
-  if (!lastType || lastType === "CARDIO" || lastType === "FULL_BODY") return "PUSH";
-  if (lastType === "PUSH") return "PULL";
-  if (lastType === "PULL") return "LEGS";
-  return "PUSH"; // LEGS → back to start of PPL cycle
-}
 
 function detectType(exs: { category: SessionType }[]): SessionType {
   if (!exs.length) return "PUSH";
@@ -130,10 +104,7 @@ export default function HomeScreen() {
   } = useRoutinesStore();
   const defaultRoutineName = _defaultName;
 
-  const [lastWorkout, setLastWorkout] = useState<WorkoutSession | null>(null);
   const [infoVisible, setInfoVisible] = useState(false);
-  const [planVisible, setPlanVisible] = useState(false);
-  const [routineExpanded, setRoutineExpanded] = useState(false);
   const [folderVisible, setFolderVisible] = useState(false);
   const [newRoutineName, setNewRoutineName] = useState("");
   // Which folder is being renamed, and the name typed so far
@@ -262,18 +233,10 @@ export default function HomeScreen() {
   }, [refreshing]);
 
   async function fetchHomeData() {
-    await Promise.all([
-      api
-        .get<WorkoutsListResponse>("/me/workouts?limit=1")
-        .then(({ data }) => {
-          setLastWorkout(data.sessions[0] ?? null);
-        })
-        .catch(() => {}),
-      api
-        .get("/me")
-        .then(({ data }) => setUser(data))
-        .catch(() => {}),
-    ]);
+    await api
+      .get("/me")
+      .then(({ data }) => setUser(data))
+      .catch(() => {});
   }
 
   useEffect(() => {
@@ -294,8 +257,7 @@ export default function HomeScreen() {
     day: "numeric",
   });
 
-  const todayType = suggestedSession(lastWorkout?.type ?? null);
-  const todaySession = SESSION_INFO[todayType];
+  const tip = tipContent(useTipStore((st) => st.tip), new Date());
 
   function openCardMenu(
     folderId: number | "default",
@@ -310,10 +272,8 @@ export default function HomeScreen() {
     setCardMenuKey((prev) => (prev === key ? null : key));
   }
 
-  function handleStart(type: SessionType) {
-    setPlanVisible(false);
-    setRoutineExpanded(false);
-    startSession(type);
+  function handleStartWorkout() {
+    startSession("FULL_BODY");
     navigation.navigate("SessionLogging");
   }
 
@@ -329,24 +289,12 @@ export default function HomeScreen() {
     }
   }
 
-  function handleStartRoutine(exercises: Exercise[]) {
-    setPlanVisible(false);
-    setRoutineExpanded(false);
-    startSession(detectType(exercises), exercises);
-    navigation.navigate("SessionLogging");
-  }
-
   // One Start per folder: a single workout holding every routine in it, in order
   function handleStartFolder(routines: SavedRoutine[]) {
     const seeds = seedFromRoutines(routines);
-    setPlanVisible(false);
-    setRoutineExpanded(false);
     startSessionFrom(detectType(seeds.map((seed) => seed.exercise)), seeds);
     navigation.navigate("SessionLogging");
   }
-
-  // All routine items across every folder (custom + default)
-  const allRoutineItems = [...defaultItems, ...folders.flatMap((f) => f.items)];
 
   return (
     <View style={styles.screen}>
@@ -443,32 +391,23 @@ export default function HomeScreen() {
             style={{ marginLeft: "auto" }}
           />
         </View>
+        {/* Today's tip: a suggested day, or a workout fact */}
+        <View style={styles.tipCard}>
+          <Ionicons name="bulb-outline" size={18} color={Colors.textMuted} />
+          <Text style={styles.tipText}>
+            <Text style={styles.tipLead}>{tip.lead} </Text>
+            {tip.body}
+          </Text>
+        </View>
+
         {/* Start workout */}
         <TouchableOpacity
           style={styles.startWorkoutButton}
-          onPress={() => handleStart("FULL_BODY")}
+          onPress={handleStartWorkout}
           activeOpacity={0.8}
         >
           <Ionicons name="add-circle" size={24} color="#fff" />
           <Text style={styles.startWorkoutText}>Start Workout</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.ghostCard}
-          onPress={() => setPlanVisible(true)}
-          activeOpacity={0.75}
-        >
-          <Ionicons
-            name="add-circle-outline"
-            size={22}
-            color={Colors.textMuted}
-          />
-          <View style={styles.ghostCardBody}>
-            <Text style={styles.ghostCardTitle}>Plan today's workout</Text>
-            <Text style={styles.ghostCardSub}>
-              {todaySession.label} day recommended
-            </Text>
-          </View>
         </TouchableOpacity>
 
         {/* Routines */}
@@ -716,130 +655,14 @@ export default function HomeScreen() {
                 and lower body exercises.
               </Text>
               <Text style={styles.modalHint}>
-                Today's suggestion follows a Push → Pull → Legs cycle based on
-                your last session.
+                Today's suggestion rotates through Push, Pull and Legs, one
+                for each day.
               </Text>
               <TouchableOpacity
                 style={styles.modalClose}
                 onPress={() => setInfoVisible(false)}
               >
                 <Text style={styles.modalCloseText}>Got it</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Modal>
-
-        {/* Plan Picker Modal */}
-        <Modal visible={planVisible} transparent animationType="fade">
-          <Pressable
-            style={styles.modalOverlay}
-            onPress={() => {
-              setPlanVisible(false);
-              setRoutineExpanded(false);
-            }}
-          >
-            <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>Choose your session</Text>
-              <Text style={styles.modalHint}>
-                {todaySession.label} day recommended based on your last session.
-              </Text>
-              {SESSION_CARDS.map((card) => (
-                <TouchableOpacity
-                  key={card.type}
-                  style={[
-                    styles.sessionCard,
-                    card.type === todayType && styles.planCardHighlight,
-                  ]}
-                  onPress={() => handleStart(card.type)}
-                  activeOpacity={0.75}
-                >
-                  <View style={styles.sessionCardAccent} />
-                  <View style={styles.sessionCardBody}>
-                    <Text style={styles.sessionCardLabel}>{card.label}</Text>
-                    <Text style={styles.sessionCardDesc}>
-                      {card.description}
-                    </Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={Colors.primary}
-                    style={styles.sessionCardChevron}
-                  />
-                </TouchableOpacity>
-              ))}
-
-              {/* Routine card */}
-              <TouchableOpacity
-                style={[
-                  styles.sessionCard,
-                  styles.routinePlanCard,
-                  routineExpanded && styles.planCardHighlight,
-                ]}
-                onPress={() => setRoutineExpanded((v) => !v)}
-                activeOpacity={0.75}
-              >
-                <View
-                  style={[
-                    styles.sessionCardAccent,
-                    { backgroundColor: Colors.textMuted },
-                  ]}
-                />
-                <View style={styles.sessionCardBody}>
-                  <Text style={styles.sessionCardLabel}>Routine</Text>
-                  <Text style={styles.sessionCardDesc}>
-                    {allRoutineItems.length > 0
-                      ? `${allRoutineItems.length} saved routine${allRoutineItems.length !== 1 ? "s" : ""}`
-                      : "No routines yet"}
-                  </Text>
-                </View>
-                <Ionicons
-                  name={routineExpanded ? "chevron-down" : "chevron-forward"}
-                  size={20}
-                  color={Colors.textMuted}
-                  style={styles.sessionCardChevron}
-                />
-              </TouchableOpacity>
-
-              {routineExpanded &&
-                (allRoutineItems.length === 0 ? (
-                  <Text style={styles.planRoutineEmpty}>
-                    Create a routine from the home screen first.
-                  </Text>
-                ) : (
-                  allRoutineItems.map((item, i) => (
-                    <TouchableOpacity
-                      key={i}
-                      style={styles.planRoutineItem}
-                      onPress={() => handleStartRoutine(item.exercises)}
-                      activeOpacity={0.75}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.planRoutineName}>{item.name}</Text>
-                        <Text style={styles.planRoutineCount}>
-                          {item.exercises.length} exercise
-                          {item.exercises.length !== 1 ? "s" : ""}
-                          {" · "}
-                          {detectType(item.exercises)}
-                        </Text>
-                      </View>
-                      <Ionicons
-                        name="play-circle-outline"
-                        size={22}
-                        color={Colors.primary}
-                      />
-                    </TouchableOpacity>
-                  ))
-                ))}
-
-              <TouchableOpacity
-                style={styles.planCancelBtn}
-                onPress={() => {
-                  setPlanVisible(false);
-                  setRoutineExpanded(false);
-                }}
-              >
-                <Text style={styles.planCancelText}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </Pressable>
@@ -1065,19 +888,6 @@ const styles = StyleSheet.create({
   infoBtnText: { fontSize: 11, color: Colors.textMuted, fontWeight: "600" },
 
   // Ghost placeholder card
-  ghostCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    borderStyle: "dashed",
-    padding: 18,
-    gap: 12,
-  },
-  ghostCardBody: { gap: 3 },
-  ghostCardTitle: { fontSize: 15, fontWeight: "600", color: Colors.textMuted },
-  ghostCardSub: { fontSize: 12, color: Colors.textMuted },
 
   // Stats
   statsRow: {
@@ -1113,6 +923,19 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   // Horizontal scroll cards (Start a Session)
+  tipCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  tipText: { flex: 1, fontSize: 13, lineHeight: 19, color: Colors.textMuted },
+  tipLead: { fontWeight: "700", color: Colors.text },
   startWorkoutButton: {
     flexDirection: "row",
     backgroundColor: Colors.primary,
@@ -1128,29 +951,6 @@ const styles = StyleSheet.create({
   },
   startWorkoutText: { color: "#fff", fontSize: 17, fontWeight: "700" },
   // Full-width session cards (plan picker modal)
-  sessionCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: "hidden",
-  },
-  sessionCardAccent: {
-    width: 4,
-    alignSelf: "stretch",
-    backgroundColor: Colors.primary,
-  },
-  sessionCardBody: {
-    flex: 1,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    gap: 4,
-  },
-  sessionCardLabel: { fontSize: 17, fontWeight: "700", color: Colors.text },
-  sessionCardDesc: { fontSize: 13, color: Colors.textMuted },
-  sessionCardChevron: { marginRight: 16 },
 
   // Routines
   routinesSectionHeader: {
@@ -1249,7 +1049,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   modalCloseText: { color: Colors.text, fontSize: 15, fontWeight: "600" },
-  planCardHighlight: { borderColor: Colors.primary },
   folderInput: {
     backgroundColor: Colors.background,
     borderWidth: 1,
@@ -1295,25 +1094,4 @@ const styles = StyleSheet.create({
   cardMenuDivider: { height: 1, backgroundColor: Colors.border },
   planCancelBtn: { paddingVertical: 10, alignItems: "center" },
   planCancelText: { color: Colors.textMuted, fontSize: 14 },
-  routinePlanCard: { borderColor: Colors.border },
-  planRoutineItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.background,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    gap: 10,
-  },
-  planRoutineName: { fontSize: 15, fontWeight: "600", color: Colors.text },
-  planRoutineCount: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
-  planRoutineEmpty: {
-    fontSize: 13,
-    color: Colors.textMuted,
-    fontStyle: "italic",
-    textAlign: "center",
-    paddingVertical: 8,
-  },
 });
