@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import type { SavedRoutine } from '../navigation/types';
+import { isFirstVisit } from '../utils/routineIntro';
 
 const k = (userId: string, key: string) => `${userId}_${key}`;
 const folderKey = (userId: string, id: number) => `${userId}_tg_folder_${id}`;
@@ -72,8 +73,7 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
         const raw = await safe_get(folderKey(userId, id));
         if (!raw) return null;
         const f = JSON.parse(raw);
-        const items = f.items ?? [];
-        return { id, name: f.name, open: items.length === 0, items } as RoutineFolder;
+        return { id, name: f.name, open: false, items: f.items ?? [] } as RoutineFolder;
       })
     ).then((arr) => (arr.filter(Boolean) as RoutineFolder[]).sort((a, b) => a.id - b.id));
 
@@ -81,15 +81,23 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
     const defRaw    = await safe_get(k(userId, 'tg_default_items'));
     const defHidden = await safe_get(k(userId, 'tg_default_hidden'));
     const defName   = await safe_get(k(userId, 'tg_default_name'));
+    const introSeen = await safe_get(k(userId, 'tg_intro_seen'));
 
     const defaultItems: SavedRoutine[] = defRaw ? JSON.parse(defRaw) : [];
+
+    const firstVisit = isFirstVisit({
+      seenBefore:        introSeen === '1',
+      folderCount:       folders.length,
+      savedRoutineCount: defaultItems.length,
+    });
+    // Remember it, so the open My Routine only ever happens once per account
+    if (introSeen !== '1') safe_set(k(userId, 'tg_intro_seen'), '1');
 
     set({
       userId,
       folders,
       defaultItems,
-      // A routine list with nothing saved starts open so the empty message is visible
-      _defaultOpen:   defaultItems.length === 0,
+      _defaultOpen:   firstVisit,
       _defaultHidden: defHidden === '1',
       _defaultName:   cleanFolderName(defName ?? '') || DEFAULT_ROUTINE_NAME,
       hydrated: true,
@@ -99,12 +107,12 @@ export const useRoutinesStore = create<RoutinesState>((set, get) => ({
   addFolder: (name) => {
     const userId = get().userId ?? '';
     const id   = Date.now();
-    const folder: RoutineFolder = { id, name, open: true, items: [] };
+    const folder: RoutineFolder = { id, name, open: false, items: [] };
     set((s) => {
       const next = [...s.folders, folder];
       const ids  = next.map((f) => f.id);
       safe_set(k(userId, 'tg_folder_ids'), JSON.stringify(ids));
-      safe_set(folderKey(userId, id), JSON.stringify({ name, open: true, items: [] }));
+      safe_set(folderKey(userId, id), JSON.stringify({ name, open: false, items: [] }));
       return { folders: next };
     });
   },

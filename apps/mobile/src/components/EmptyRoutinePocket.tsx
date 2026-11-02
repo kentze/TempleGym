@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     paddingTop: 48,
     paddingHorizontal: 16,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   text: { fontSize: 15, color: Colors.textMuted },
 });
