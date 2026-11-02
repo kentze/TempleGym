@@ -522,7 +522,7 @@ export default function HomeScreen() {
           {_defaultOpen && (
             <RoutinePocket empty={defaultItems.length === 0}>
               {defaultItems.map((item, i) => (
-                <View key={i} style={styles.routineCard}>
+                <View key={i} style={[styles.routineCard, i > 0 && styles.routineCardDivider]}>
                   <View style={styles.routineCardHeader}>
                     <Text style={styles.routineCardType}>{item.name}</Text>
                     <TouchableOpacity
@@ -620,7 +620,7 @@ export default function HomeScreen() {
             {routine.open && (
               <RoutinePocket empty={routine.items.length === 0}>
                 {routine.items.map((item, i) => (
-                  <View key={i} style={styles.routineCard}>
+                  <View key={i} style={[styles.routineCard, i > 0 && styles.routineCardDivider]}>
                     <View style={styles.routineCardHeader}>
                       <Text style={styles.routineCardType}>{item.name}</Text>
                       <TouchableOpacity
@@ -1169,15 +1169,16 @@ const styles = StyleSheet.create({
   },
   popupOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
   routinesHeaderJoined: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
+  // A routine inside the folder pocket: no box of its own, just a line between routines
   routineCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: 16,
+    paddingHorizontal: 4,
     paddingTop: 12,
     paddingBottom: 14,
     gap: 4,
+  },
+  routineCardDivider: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
   routineCardHeader: {
     flexDirection: "row",
@@ -1196,7 +1197,7 @@ const styles = StyleSheet.create({
   routineCardLastEx: { fontSize: 14, color: Colors.text, paddingRight: 64 },
   routineCardStart: {
     position: "absolute",
-    right: 16,
+    right: 4,
     bottom: 10,
     backgroundColor: Colors.primary,
     borderRadius: 10,

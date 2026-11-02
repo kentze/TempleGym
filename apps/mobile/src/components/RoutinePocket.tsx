@@ -28,7 +28,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 14,
     borderTopWidth: 0,
     borderColor: Colors.border,
-    marginBottom: 20,
   },
   pocketEmpty: {
     minHeight: 170,
@@ -41,8 +40,8 @@ const styles = StyleSheet.create({
   pocketFilled: {
     borderWidth: 1,
     borderStyle: 'solid',
-    padding: 12,
-    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
   emptyText: { fontSize: 15, color: Colors.textMuted },
 });
