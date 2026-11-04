@@ -66,7 +66,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
-  name: { fontSize: 17, fontWeight: '700', color: Colors.text },
+  // Gold, so each routine's name stands out from its exercises
+  name: { fontSize: 17, fontWeight: '700', color: Colors.gold },
   count: { fontSize: 12, color: Colors.textMuted, marginBottom: 6 },
   line: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   lineText: { flex: 1, fontSize: 14, color: Colors.text },
