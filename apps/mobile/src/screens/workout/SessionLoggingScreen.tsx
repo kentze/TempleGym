@@ -105,7 +105,11 @@ export default function SessionLoggingScreen() {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         {activeSession.exercises.map((ex, index) => (
           <Fragment key={ex.slotKey}>
           {marks[index].divider && <View style={styles.sectionDivider} />}
