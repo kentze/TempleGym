@@ -2,6 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SetEntry } from '@templegym/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { useAuthStore } from '../../store/auth.store';
@@ -29,9 +30,6 @@ export default function SessionDetailScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.back}>‹ Back</Text>
         </TouchableOpacity>
-        <View style={[styles.badge, session.type === 'PUSH' ? styles.badgePush : styles.badgePull]}>
-          <Text style={styles.badgeText}>{session.type}</Text>
-        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -47,19 +45,19 @@ export default function SessionDetailScreen() {
             <Text style={styles.statValue}>{session.pointsEarned}</Text>
             <Text style={styles.statLabel}>pts</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.stat}>
-            <Text style={[styles.statValue, { color: session.gpsVerified ? Colors.success : Colors.textMuted }]}>
-              {session.gpsVerified ? 'Yes' : 'No'}
-            </Text>
-            <Text style={styles.statLabel}>GPS</Text>
-          </View>
         </View>
 
         {session.exercises.map((ex: { id: string; exerciseId: string; exercise?: { name: string }; sets: unknown }) => (
           <View key={ex.id} style={styles.exerciseCard}>
             <Text style={styles.exerciseName}>{ex.exercise?.name ?? ex.exerciseId}</Text>
-            {(ex.sets as { setNumber: number; weightKg: number; reps: number }[]).map((s) => {
+            {(ex.sets as SetEntry[]).map((s) => {
+              if ('minutes' in s) {
+                return (
+                  <Text key={s.setNumber} style={styles.setRow}>
+                    {s.minutes} min
+                  </Text>
+                );
+              }
               const displayWeight = preferMetric
                 ? `${s.weightKg}kg`
                 : `${(s.weightKg * 2.20462).toFixed(1)}lbs`;
@@ -80,10 +78,6 @@ const styles = StyleSheet.create({
   container:    { flex: 1, backgroundColor: Colors.background },
   header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
   back:         { color: Colors.primary, fontSize: 16 },
-  badge:        { borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 },
-  badgePush:    { backgroundColor: `${Colors.primary}30` },
-  badgePull:    { backgroundColor: `${Colors.gold}20` },
-  badgeText:    { fontSize: 12, fontWeight: '700', color: Colors.text },
   content:      { padding: 20, gap: 16 },
   date:         { fontSize: 18, fontWeight: '600', color: Colors.text },
   statsRow:     { flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 16 },

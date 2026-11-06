@@ -50,4 +50,16 @@ describe('computeVolumeScore', () => {
     // 60*10 + 80*5 + 80*5 = 600 + 400 + 400 = 1400
     expect(computeVolumeScore(exercises)).toBe(1400);
   });
+
+  it('ignores cardio sets, which have minutes and no weight', () => {
+    const exercises = [
+      { sets: [{ setNumber: 1, minutes: 30 }] },
+      { sets: [{ setNumber: 1, weightKg: 100, reps: 10 }] },
+    ];
+    expect(computeVolumeScore(exercises)).toBe(1000);
+  });
+
+  it('is zero for a workout made only of cardio', () => {
+    expect(computeVolumeScore([{ sets: [{ setNumber: 1, minutes: 45 }] }])).toBe(0);
+  });
 });

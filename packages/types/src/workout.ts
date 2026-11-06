@@ -1,10 +1,19 @@
 export type SessionType = "PUSH" | "PULL" | "LEGS" | "CARDIO" | "FULL_BODY";
 
-export interface SetEntry {
+// A set of lifting: weight and reps
+export interface StrengthSet {
   setNumber: number;
   weightKg: number;
   reps: number;
 }
+
+// A cardio entry: how many minutes
+export interface CardioSet {
+  setNumber: number;
+  minutes: number;
+}
+
+export type SetEntry = StrengthSet | CardioSet;
 
 export interface Exercise {
   id: string;

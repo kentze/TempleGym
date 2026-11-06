@@ -17,5 +17,5 @@ export function computePoints({ durationMinutes, volumeScore, gpsVerified }: Poi
 
 export function computeVolumeScore(exercises: { sets: SetEntry[] }[]): number {
   return exercises.reduce((total, ex) =>
-    total + ex.sets.reduce((s, set) => s + set.weightKg * set.reps, 0), 0);
+    total + ex.sets.reduce((s, set) => ('minutes' in set ? s : s + set.weightKg * set.reps), 0), 0);
 }

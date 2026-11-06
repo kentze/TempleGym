@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/auth.middleware';
 import { prisma } from '../utils/prisma';
+import { bestSetPerExercise } from '../services/stats.service';
 
 const router = Router();
 
@@ -9,6 +10,7 @@ const updateProfileSchema = z.object({
   displayName:  z.string().min(2).max(30).optional(),
   heightCm:     z.number().int().min(100).max(250).optional(),
   weightKg:     z.number().min(20).max(300).optional(),
+  gymId:        z.enum(['city', 'hillside']).optional(),
   preferMetric:         z.boolean().optional(),
   leaderboardAnonymous: z.boolean().optional(),
 });
@@ -62,24 +64,7 @@ router.get('/stats', requireAuth, async (req: Request, res: Response) => {
     include: { exercise: true, session: { select: { startedAt: true } } },
   });
 
-  const best = new Map<string, { exercise: unknown; bestWeightKg: number; bestReps: number; achievedAt: Date }>();
-
-  for (const row of rows) {
-    const sets = row.sets as { setNumber: number; weightKg: number; reps: number }[];
-    for (const s of sets) {
-      const existing = best.get(row.exerciseId);
-      if (!existing || s.weightKg > existing.bestWeightKg) {
-        best.set(row.exerciseId, {
-          exercise:     row.exercise,
-          bestWeightKg: s.weightKg,
-          bestReps:     s.reps,
-          achievedAt:   row.session.startedAt,
-        });
-      }
-    }
-  }
-
-  return res.json(Array.from(best.values()));
+  return res.json(bestSetPerExercise(rows));
 });
 
 

@@ -13,6 +13,8 @@ module.exports = {
     'src/services/gps.service.ts',
     'src/services/otp.service.ts',
     'src/services/gauntlet.service.ts',
+    'src/services/exercises.service.ts',
+    'src/data/gymWorkouts.ts',
     'src/utils/haversine.ts',
     'src/utils/weekLabel.ts',
   ],
