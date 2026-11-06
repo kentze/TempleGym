@@ -63,7 +63,7 @@ export default function ExercisePickerSheet({ visible, onClose, onSelect, exclud
             <Text style={styles.modalTitle}>Add Exercise</Text>
             <Text style={styles.modalSubtitle}>
               {tab === 'simple'
-                ? "Pick what you're training today"
+                ? "New to the gym? Pick the area you're training"
                 : `Showing equipment for ${gymName(gymId)}`}
             </Text>
           </View>

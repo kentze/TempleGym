@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Exercise, SessionType, SetEntry } from '@templegym/types';
+import type { CardioSet, Exercise, SessionType, SetEntry, StrengthSet } from '@templegym/types';
 import { api } from '../services/api';
 import type { GroupTag, SessionSeed } from '../utils/routineSession';
 
@@ -9,9 +9,14 @@ interface ActiveExercise {
   name:       string;
   orderIndex: number;
   startedAt:  Date;
+  // Cardio is logged in minutes, everything else in weight and reps
+  isCardio:   boolean;
   sets:       SetEntry[];
   group?:     GroupTag; // the routine it came from, when the workout was started from a folder
 }
+
+// A set as typed in, before the store numbers it
+export type NewSet = Omit<StrengthSet, 'setNumber'> | Omit<CardioSet, 'setNumber'>;
 
 interface ActiveSession {
   type:      SessionType;
@@ -25,7 +30,7 @@ interface WorkoutState {
   startSession:  (type: SessionType, exercises?: Exercise[]) => void;
   startSessionFrom: (type: SessionType, seeds: SessionSeed[]) => void;
   addExercise:   (exercise: Exercise) => void;
-  addSet:        (slotKey: string, set: Omit<SetEntry, 'setNumber'>) => void;
+  addSet:        (slotKey: string, set: NewSet) => void;
   endSession:    (gpsLat?: number, gpsLng?: number) => Promise<void>;
   clearSession:  () => void;
 }
@@ -47,6 +52,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
         name:       exercise.name,
         orderIndex: i,
         startedAt:  new Date(),
+        isCardio:   exercise.category === 'CARDIO',
         sets:       [],
         group,
       })),
@@ -67,6 +73,7 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
           name:       exercise.name,
           orderIndex,
           startedAt:  new Date(),
+          isCardio:   exercise.category === 'CARDIO',
           sets:       [],
         }],
       },

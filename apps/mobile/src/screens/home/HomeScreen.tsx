@@ -24,7 +24,7 @@ import GymTabs from "../../components/GymTabs";
 import { useGreetingStore } from "../../store/greeting.store";
 import TipCard from "../../components/TipCard";
 import RoutinePocket from "../../components/RoutinePocket";
-import SessionTypesModal from "../../components/SessionTypesModal";
+import TrainingAreasModal from "../../components/TrainingAreasModal";
 import FolderRoutineList from "../../components/FolderRoutineList";
 import type { GymId } from "../../constants/gyms";
 import { useAuthStore } from "../../store/auth.store";
@@ -479,7 +479,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Session types help popup */}
-        <SessionTypesModal visible={infoVisible} onClose={() => setInfoVisible(false)} />
+        <TrainingAreasModal visible={infoVisible} onClose={() => setInfoVisible(false)} />
 
         {/* New Folder Modal */}
         <Modal visible={folderVisible} transparent animationType="fade">

@@ -1,37 +1,37 @@
 import { View, Text, TouchableOpacity, Pressable, Modal, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
-import { SESSION_TYPES } from '../constants/sessionTypes';
-import { suggestedDay } from '../constants/tips';
+import { TRAINING_AREAS } from '../constants/trainingAreas';
+import { suggestedArea } from '../constants/tips';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
 }
 
-// The help popup on Home: what each kind of session trains, with today's suggested day tagged.
-export default function SessionTypesModal({ visible, onClose }: Props) {
-  const today = suggestedDay(new Date());
+// The help popup on Home: what each training area covers, with today's suggested area tagged.
+export default function TrainingAreasModal({ visible, onClose }: Props) {
+  const today = suggestedArea(new Date());
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={styles.card} onPress={() => {}}>
           <View style={styles.header}>
-            <Text style={styles.title}>Session Types</Text>
-            <Text style={styles.subtitle}>What each kind of workout trains</Text>
+            <Text style={styles.title}>Training Areas</Text>
+            <Text style={styles.subtitle}>What each area covers</Text>
           </View>
 
           <View style={styles.list}>
-            {SESSION_TYPES.map((item) => (
-              <View key={item.type} style={styles.row}>
+            {TRAINING_AREAS.map((item) => (
+              <View key={item.id} style={styles.row}>
                 <View style={styles.chip}>
                   <Ionicons name={item.icon} size={22} color={Colors.primary} />
                 </View>
                 <View style={styles.rowText}>
                   <View style={styles.nameRow}>
-                    <Text style={styles.name}>{item.label}</Text>
-                    {item.type === today && (
+                    <Text style={styles.name}>{item.name}</Text>
+                    {item.id === today && (
                       <View style={styles.todayTag}>
                         <Text style={styles.todayTagText}>Today</Text>
                       </View>
@@ -46,7 +46,7 @@ export default function SessionTypesModal({ visible, onClose }: Props) {
           <View style={styles.note}>
             <Ionicons name="bulb-outline" size={18} color={Colors.textMuted} />
             <Text style={styles.noteText}>
-              Today's suggestion rotates through Push, Pull and Legs, one for each day.
+              The suggestion rotates daily through Upper Body, Lower Body and Cardio.
             </Text>
           </View>
 

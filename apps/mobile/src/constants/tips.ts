@@ -1,4 +1,4 @@
-import { SESSION_TYPES } from './sessionTypes';
+import { TRAINING_AREAS, type AreaId } from './trainingAreas';
 
 // Short workout facts for the tip on Home. To add or remove one, edit this list.
 export const FACTS = [
@@ -16,19 +16,12 @@ export const FACTS = [
   'Showing up often matters more than having one perfect workout.',
 ] as const;
 
-export type DayKind = 'PUSH' | 'PULL' | 'LEGS';
+const AREA_ORDER: AreaId[] = ['UPPER', 'LOWER', 'CARDIO'];
 
-// The wording for a day comes from the shared session type list, so it matches the help popup
-function dayInfo(kind: DayKind) {
-  return SESSION_TYPES.find((t) => t.type === kind)!;
-}
-
-const DAY_ORDER: DayKind[] = ['PUSH', 'PULL', 'LEGS'];
-
-// Today's suggested day. It rotates Push, Pull, Legs, one per calendar day.
-export function suggestedDay(date: Date): DayKind {
+// Today's suggested area. It rotates Upper Body, Lower Body, Cardio, one per calendar day.
+export function suggestedArea(date: Date): AreaId {
   const days = Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000);
-  return DAY_ORDER[days % DAY_ORDER.length];
+  return AREA_ORDER[days % AREA_ORDER.length];
 }
 
 export type Tip = { kind: 'suggestion' } | { kind: 'fact'; index: number };
@@ -46,8 +39,9 @@ export function buildTipOrder(random: () => number = Math.random): Tip[] {
 
 export function tipContent(tip: Tip, date: Date): { lead: string; body: string } {
   if (tip.kind === 'suggestion') {
-    const day = dayInfo(suggestedDay(date));
-    return { lead: 'Suggestion:', body: `Try a ${day.label} day today. ${day.description}.` };
+    const area = TRAINING_AREAS.find((a) => a.id === suggestedArea(date))!;
+    const article = /^[aeiou]/i.test(area.name) ? 'an' : 'a';
+    return { lead: 'Suggestion:', body: `Try ${article} ${area.name} day today. ${area.description}.` };
   }
   return { lead: 'Did you know?', body: FACTS[Math.min(Math.max(tip.index, 0), FACTS.length - 1)] };
 }

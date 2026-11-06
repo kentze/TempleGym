@@ -1,35 +1,13 @@
 import { Router, Request, Response } from 'express';
-import { z } from 'zod';
 import type { Prisma } from '@prisma/client';
 import { requireAuth } from '../middleware/auth.middleware';
 import { prisma } from '../utils/prisma';
 import { isAtGym } from '../services/gps.service';
 import { computePoints, computeVolumeScore } from '../services/points.service';
 import { getWeekLabel } from '../utils/weekLabel';
+import { submitWorkoutSchema } from '../utils/workoutSchemas';
 
 const router = Router();
-
-const setSchema = z.object({
-  setNumber: z.number().int().min(1),
-  weightKg:  z.number().min(0).max(250),
-  reps:      z.number().int().min(1).max(50),
-});
-
-const exerciseEntrySchema = z.object({
-  exerciseId: z.string().cuid(),
-  orderIndex: z.number().int().min(0),
-  startedAt:  z.string().datetime(),
-  sets:       z.array(setSchema).min(1).max(20),
-});
-
-const submitWorkoutSchema = z.object({
-  type:      z.enum(['PUSH', 'PULL', 'LEGS', 'CARDIO', 'FULL_BODY']),
-  startedAt: z.string().datetime(),
-  endedAt:   z.string().datetime(),
-  gpsLat:    z.number().optional(),
-  gpsLng:    z.number().optional(),
-  exercises: z.array(exerciseEntrySchema).min(1),
-});
 
 // POST /workouts
 router.post('/', requireAuth, async (req: Request, res: Response) => {

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import ExercisePickerSheet from '../../components/ExercisePickerSheet';
 import { sectionMarks } from '../../utils/routineSession';
+import { parseStrengthSet, parseCardioSet } from '../../utils/setInput';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,6 +25,7 @@ type Nav = NativeStackNavigationProp<MainStackParamList, 'SessionLogging'>;
 interface SetInputs {
   weightKg: string;
   reps: string;
+  minutes: string;
 }
 
 export default function SessionLoggingScreen() {
@@ -51,27 +53,19 @@ export default function SessionLoggingScreen() {
     }));
   }
 
-  function handleAddSet(slotKey: string) {
+  // Cardio logs minutes, everything else logs weight and reps
+  function handleAddSet(slotKey: string, isCardio: boolean) {
     const inputs = setInputs[slotKey];
-    const weight = parseFloat(inputs?.weightKg ?? '');
-    const reps   = parseInt(inputs?.reps ?? '', 10);
-    if (isNaN(weight) || weight < 0 || isNaN(reps) || reps < 1) {
-      setError('Enter valid weight and reps before adding a set.');
-      return;
-    }
-    const maxWeight = preferMetric ? 250 : 550;
-    if (weight > maxWeight) {
-      setError(`Weight cannot exceed ${maxWeight} ${preferMetric ? 'kg' : 'lbs'} per set.`);
-      return;
-    }
-    if (reps > 50) {
-      setError('Reps cannot exceed 50 per set.');
+    const parsed = isCardio
+      ? parseCardioSet(inputs?.minutes ?? '')
+      : parseStrengthSet(inputs?.weightKg ?? '', inputs?.reps ?? '', preferMetric);
+    if (!parsed.ok) {
+      setError(parsed.error);
       return;
     }
     setError(null);
-    const weightKg = preferMetric ? weight : weight / 2.20462;
-    addSet(slotKey, { weightKg, reps });
-    setSetInputs((prev) => ({ ...prev, [slotKey]: { weightKg: '', reps: '' } }));
+    addSet(slotKey, parsed.set);
+    setSetInputs((prev) => ({ ...prev, [slotKey]: { weightKg: '', reps: '', minutes: '' } }));
   }
 
   async function handleEndSession() {
@@ -120,6 +114,13 @@ export default function SessionLoggingScreen() {
             <Text style={styles.exerciseName}>{ex.name}</Text>
 
             {ex.sets.map((s) => {
+              if ('minutes' in s) {
+                return (
+                  <Text key={s.setNumber} style={styles.setRow}>
+                    {s.minutes} min
+                  </Text>
+                );
+              }
               const displayWeight = preferMetric
                 ? `${s.weightKg}kg`
                 : `${(s.weightKg * 2.20462).toFixed(1)}lbs`;
@@ -131,27 +132,40 @@ export default function SessionLoggingScreen() {
             })}
 
             <View style={styles.setInputRow}>
-              <TextInput
-                style={styles.setInput}
-                placeholder={preferMetric ? 'kg' : 'lbs'}
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="decimal-pad"
-                value={setInputs[ex.slotKey]?.weightKg ?? ''}
-                onChangeText={(v) => updateSetInput(ex.slotKey, 'weightKg', v)}
-              />
-              <TextInput
-                style={styles.setInput}
-                placeholder="reps"
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="number-pad"
-                value={setInputs[ex.slotKey]?.reps ?? ''}
-                onChangeText={(v) => updateSetInput(ex.slotKey, 'reps', v)}
-              />
+              {ex.isCardio ? (
+                <TextInput
+                  style={styles.setInput}
+                  placeholder="minutes"
+                  placeholderTextColor={Colors.textMuted}
+                  keyboardType="number-pad"
+                  value={setInputs[ex.slotKey]?.minutes ?? ''}
+                  onChangeText={(v) => updateSetInput(ex.slotKey, 'minutes', v)}
+                />
+              ) : (
+                <>
+                  <TextInput
+                    style={styles.setInput}
+                    placeholder={preferMetric ? 'kg' : 'lbs'}
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="decimal-pad"
+                    value={setInputs[ex.slotKey]?.weightKg ?? ''}
+                    onChangeText={(v) => updateSetInput(ex.slotKey, 'weightKg', v)}
+                  />
+                  <TextInput
+                    style={styles.setInput}
+                    placeholder="reps"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="number-pad"
+                    value={setInputs[ex.slotKey]?.reps ?? ''}
+                    onChangeText={(v) => updateSetInput(ex.slotKey, 'reps', v)}
+                  />
+                </>
+              )}
               <TouchableOpacity
                 style={styles.addSetButton}
-                onPress={() => handleAddSet(ex.slotKey)}
+                onPress={() => handleAddSet(ex.slotKey, ex.isCardio)}
               >
-                <Text style={styles.addSetButtonText}>+ Set</Text>
+                <Text style={styles.addSetButtonText}>{ex.isCardio ? '+ Log' : '+ Set'}</Text>
               </TouchableOpacity>
             </View>
           </View>

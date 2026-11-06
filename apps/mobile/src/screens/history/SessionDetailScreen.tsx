@@ -2,6 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SetEntry } from '@templegym/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { useAuthStore } from '../../store/auth.store';
@@ -49,7 +50,14 @@ export default function SessionDetailScreen() {
         {session.exercises.map((ex: { id: string; exerciseId: string; exercise?: { name: string }; sets: unknown }) => (
           <View key={ex.id} style={styles.exerciseCard}>
             <Text style={styles.exerciseName}>{ex.exercise?.name ?? ex.exerciseId}</Text>
-            {(ex.sets as { setNumber: number; weightKg: number; reps: number }[]).map((s) => {
+            {(ex.sets as SetEntry[]).map((s) => {
+              if ('minutes' in s) {
+                return (
+                  <Text key={s.setNumber} style={styles.setRow}>
+                    {s.minutes} min
+                  </Text>
+                );
+              }
               const displayWeight = preferMetric
                 ? `${s.weightKg}kg`
                 : `${(s.weightKg * 2.20462).toFixed(1)}lbs`;
