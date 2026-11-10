@@ -1,38 +1,31 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  FlatList,
-  Modal,
   ScrollView,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import LogoLoader from '../../components/LogoLoader';
+import ExercisePickerSheet from '../../components/ExercisePickerSheet';
+import { sectionMarks } from '../../utils/routineSession';
+import { parseStrengthSet, parseCardioSet } from '../../utils/setInput';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
-import { api } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
 import { useWorkoutStore } from '../../store/workout.store';
 import type { MainStackParamList } from '../../navigation/types';
-import type { Exercise } from '@templegym/types';
 
 type Nav = NativeStackNavigationProp<MainStackParamList, 'SessionLogging'>;
 
 interface SetInputs {
   weightKg: string;
   reps: string;
-}
-
-function formatElapsed(seconds: number): string {
-  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-  const s = (seconds % 60).toString().padStart(2, '0');
-  return `${m}:${s}`;
+  minutes: string;
 }
 
 export default function SessionLoggingScreen() {
@@ -42,10 +35,7 @@ export default function SessionLoggingScreen() {
   const preferMetric  = user?.preferMetric ?? true;
   const { activeSession, addExercise, addSet, endSession, isSubmitting, clearSession } = useWorkoutStore();
 
-  const [elapsed, setElapsed]                   = useState(0);
-  const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
   const [pickerVisible, setPickerVisible]        = useState(false);
-  const [pickerLoading, setPickerLoading]        = useState(false);
   const [setInputs, setSetInputs]                = useState<Record<string, SetInputs>>({});
   const [error, setError]                        = useState<string | null>(null);
 
@@ -54,37 +44,7 @@ export default function SessionLoggingScreen() {
       navigation.goBack();
       return;
     }
-    const start   = activeSession.startedAt.getTime();
-    const tick    = () => setElapsed(Math.floor((Date.now() - start) / 1000));
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
   }, [activeSession]);
-
-  const fetchExercises = useCallback(async () => {
-    if (!activeSession) return;
-    setPickerLoading(true);
-    try {
-      const { data } = await api.get<Exercise[]>('/exercises', {
-        params: { sessionType: activeSession.type },
-      });
-      setAvailableExercises(data);
-    } catch {
-      setError('Could not load exercises.');
-    } finally {
-      setPickerLoading(false);
-    }
-  }, [activeSession?.type]);
-
-  function openPicker() {
-    if (availableExercises.length === 0) fetchExercises();
-    setPickerVisible(true);
-  }
-
-  function handlePickExercise(exercise: Exercise) {
-    addExercise(exercise);
-    setPickerVisible(false);
-  }
 
   function updateSetInput(slotKey: string, field: keyof SetInputs, value: string) {
     setSetInputs((prev) => ({
@@ -93,27 +53,19 @@ export default function SessionLoggingScreen() {
     }));
   }
 
-  function handleAddSet(slotKey: string) {
+  // Cardio logs minutes, everything else logs weight and reps
+  function handleAddSet(slotKey: string, isCardio: boolean) {
     const inputs = setInputs[slotKey];
-    const weight = parseFloat(inputs?.weightKg ?? '');
-    const reps   = parseInt(inputs?.reps ?? '', 10);
-    if (isNaN(weight) || weight < 0 || isNaN(reps) || reps < 1) {
-      setError('Enter valid weight and reps before adding a set.');
-      return;
-    }
-    const maxWeight = preferMetric ? 250 : 550;
-    if (weight > maxWeight) {
-      setError(`Weight cannot exceed ${maxWeight} ${preferMetric ? 'kg' : 'lbs'} per set.`);
-      return;
-    }
-    if (reps > 50) {
-      setError('Reps cannot exceed 50 per set.');
+    const parsed = isCardio
+      ? parseCardioSet(inputs?.minutes ?? '')
+      : parseStrengthSet(inputs?.weightKg ?? '', inputs?.reps ?? '', preferMetric);
+    if (!parsed.ok) {
+      setError(parsed.error);
       return;
     }
     setError(null);
-    const weightKg = preferMetric ? weight : weight / 2.20462;
-    addSet(slotKey, { weightKg, reps });
-    setSetInputs((prev) => ({ ...prev, [slotKey]: { weightKg: '', reps: '' } }));
+    addSet(slotKey, parsed.set);
+    setSetInputs((prev) => ({ ...prev, [slotKey]: { weightKg: '', reps: '', minutes: '' } }));
   }
 
   async function handleEndSession() {
@@ -141,15 +93,11 @@ export default function SessionLoggingScreen() {
   if (!activeSession) return null;
 
   const addedIds = new Set(activeSession.exercises.map((e) => e.exerciseId));
-  const pickable = availableExercises.filter((e) => !addedIds.has(e.id));
-
+  const marks    = sectionMarks(activeSession.exercises.map((e) => e.group));
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-        <View>
-          <Text style={styles.sessionType}>{activeSession.type} Session</Text>
-          <Text style={styles.timer}>{formatElapsed(elapsed)}</Text>
-        </View>
+        <Text style={styles.title}>Workout Session</Text>
         <TouchableOpacity onPress={handleDiscard}>
           <Text style={styles.discard}>Discard</Text>
         </TouchableOpacity>
@@ -157,12 +105,26 @@ export default function SessionLoggingScreen() {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {activeSession.exercises.map((ex) => (
-          <View key={ex.slotKey} style={styles.exerciseCard}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        {activeSession.exercises.map((ex, index) => (
+          <Fragment key={ex.slotKey}>
+          {marks[index].divider && <View style={styles.sectionDivider} />}
+          {marks[index].label && <Text style={styles.sectionLabel}>{marks[index].label}</Text>}
+          <View style={styles.exerciseCard}>
             <Text style={styles.exerciseName}>{ex.name}</Text>
 
             {ex.sets.map((s) => {
+              if ('minutes' in s) {
+                return (
+                  <Text key={s.setNumber} style={styles.setRow}>
+                    {s.minutes} min
+                  </Text>
+                );
+              }
               const displayWeight = preferMetric
                 ? `${s.weightKg}kg`
                 : `${(s.weightKg * 2.20462).toFixed(1)}lbs`;
@@ -174,33 +136,47 @@ export default function SessionLoggingScreen() {
             })}
 
             <View style={styles.setInputRow}>
-              <TextInput
-                style={styles.setInput}
-                placeholder={preferMetric ? 'kg' : 'lbs'}
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="decimal-pad"
-                value={setInputs[ex.slotKey]?.weightKg ?? ''}
-                onChangeText={(v) => updateSetInput(ex.slotKey, 'weightKg', v)}
-              />
-              <TextInput
-                style={styles.setInput}
-                placeholder="reps"
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="number-pad"
-                value={setInputs[ex.slotKey]?.reps ?? ''}
-                onChangeText={(v) => updateSetInput(ex.slotKey, 'reps', v)}
-              />
+              {ex.isCardio ? (
+                <TextInput
+                  style={styles.setInput}
+                  placeholder="minutes"
+                  placeholderTextColor={Colors.textMuted}
+                  keyboardType="number-pad"
+                  value={setInputs[ex.slotKey]?.minutes ?? ''}
+                  onChangeText={(v) => updateSetInput(ex.slotKey, 'minutes', v)}
+                />
+              ) : (
+                <>
+                  <TextInput
+                    style={styles.setInput}
+                    placeholder={preferMetric ? 'kg' : 'lbs'}
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="decimal-pad"
+                    value={setInputs[ex.slotKey]?.weightKg ?? ''}
+                    onChangeText={(v) => updateSetInput(ex.slotKey, 'weightKg', v)}
+                  />
+                  <TextInput
+                    style={styles.setInput}
+                    placeholder="reps"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="number-pad"
+                    value={setInputs[ex.slotKey]?.reps ?? ''}
+                    onChangeText={(v) => updateSetInput(ex.slotKey, 'reps', v)}
+                  />
+                </>
+              )}
               <TouchableOpacity
                 style={styles.addSetButton}
-                onPress={() => handleAddSet(ex.slotKey)}
+                onPress={() => handleAddSet(ex.slotKey, ex.isCardio)}
               >
-                <Text style={styles.addSetButtonText}>+ Set</Text>
+                <Text style={styles.addSetButtonText}>{ex.isCardio ? '+ Log' : '+ Set'}</Text>
               </TouchableOpacity>
             </View>
           </View>
+          </Fragment>
         ))}
 
-        <TouchableOpacity style={styles.addExerciseButton} onPress={openPicker}>
+        <TouchableOpacity style={styles.addExerciseButton} onPress={() => setPickerVisible(true)}>
           <Text style={styles.addExerciseText}>Add Exercise</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -218,34 +194,12 @@ export default function SessionLoggingScreen() {
         </TouchableOpacity>
       </View>
 
-      <Modal visible={pickerVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPickerVisible(false)}>
-        <View style={styles.modal}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Add Exercise</Text>
-            <TouchableOpacity onPress={() => setPickerVisible(false)}>
-              <Text style={styles.modalClose}>Done</Text>
-            </TouchableOpacity>
-          </View>
-          {pickerLoading
-            ? <LogoLoader />
-            : (
-              <FlatList
-                data={pickable}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <TouchableOpacity style={styles.pickerRow} onPress={() => handlePickExercise(item)}>
-                    <View>
-                      <Text style={styles.pickerName}>{item.name}</Text>
-                      <Text style={styles.pickerMuscles}>{item.muscleGroups.join(', ')}</Text>
-                    </View>
-                  </TouchableOpacity>
-                )}
-                ListEmptyComponent={<Text style={styles.emptyText}>All exercises already added.</Text>}
-              />
-            )
-          }
-        </View>
-      </Modal>
+      <ExercisePickerSheet
+        visible={pickerVisible}
+        onClose={() => setPickerVisible(false)}
+        onSelect={addExercise}
+        excludeIds={addedIds}
+      />
     </View>
   );
 }
@@ -253,12 +207,13 @@ export default function SessionLoggingScreen() {
 const styles = StyleSheet.create({
   container:          { flex: 1, backgroundColor: Colors.background },
   header:             { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  sessionType:        { fontSize: 13, color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
-  timer:              { fontSize: 32, fontWeight: '700', color: Colors.text, fontVariant: ['tabular-nums'] },
+  title:              { fontSize: 30, fontWeight: '700', color: Colors.text },
   discard:            { color: Colors.error, fontSize: 14 },
   error:              { color: Colors.error, fontSize: 13, textAlign: 'center', paddingHorizontal: 20, paddingTop: 8 },
   scroll:             { flex: 1 },
   scrollContent:      { padding: 16, gap: 12 },
+  sectionDivider:     { height: 1, backgroundColor: Colors.border },
+  sectionLabel:       { fontSize: 12, fontWeight: '600', color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
   exerciseCard:       { backgroundColor: Colors.surface, borderRadius: 12, borderWidth: 1, borderColor: Colors.border, padding: 14, gap: 8 },
   exerciseName:       { fontSize: 16, fontWeight: '600', color: Colors.text },
   setRow:             { fontSize: 13, color: Colors.textMuted },
@@ -272,12 +227,4 @@ const styles = StyleSheet.create({
   endButton:          { backgroundColor: Colors.primary, borderRadius: 12, paddingVertical: 16, alignItems: 'center' },
   endButtonDisabled:  { opacity: 0.6 },
   endButtonText:      { color: Colors.text, fontSize: 16, fontWeight: '700' },
-  modal:              { flex: 1, backgroundColor: Colors.background },
-  modalHeader:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  modalTitle:         { fontSize: 18, fontWeight: '700', color: Colors.text },
-  modalClose:         { color: Colors.primary, fontSize: 16 },
-  pickerRow:          { padding: 16, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  pickerName:         { fontSize: 16, color: Colors.text },
-  pickerMuscles:      { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
-  emptyText:          { textAlign: 'center', color: Colors.textMuted, marginTop: 32 },
 });

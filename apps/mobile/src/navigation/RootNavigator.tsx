@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuthStore } from '../store/auth.store';
+import { useGreetingStore } from '../store/greeting.store';
+import { useTipStore } from '../store/tip.store';
 import { api } from '../services/api';
 import { AuthStackParamList } from './types';
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -15,6 +17,7 @@ export default function RootNavigator() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    useTipStore.getState().choose();
     (async () => {
       await Promise.all([
         (async () => {
@@ -29,6 +32,7 @@ export default function RootNavigator() {
           }
           return t;
         })(),
+        useGreetingStore.getState().choose(),
         new Promise(resolve => setTimeout(resolve, 1500)),
       ]);
       setIsLoading(false);

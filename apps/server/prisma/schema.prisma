@@ -20,6 +20,7 @@ model User {
   id           String   @id @default(cuid())
   email        String   @unique
   displayName  String?
+  gymId        String   @default("city")
   heightCm     Int?
   weightKg     Float?
   preferMetric         Boolean  @default(true)
@@ -51,6 +52,7 @@ model Exercise {
   category     SessionType
   subCategory  String?
   muscleGroups String[]
+  gyms         String[]    @default(["city", "hillside"])
 
   workoutExercises WorkoutExercise[]
   gauntletCycles GauntletCycle[]

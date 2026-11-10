@@ -2,6 +2,7 @@ export interface UserProfile {
   id: string;
   email: string;
   displayName: string | null;
+  gymId: string;
   heightCm: number | null;
   weightKg: number | null;
   preferMetric: boolean;
@@ -13,6 +14,7 @@ export interface UserProfile {
 
 export interface UpdateProfileBody {
   displayName?: string;
+  gymId?: 'city' | 'hillside';
   heightCm?: number;
   weightKg?: number;
   preferMetric?: boolean;
